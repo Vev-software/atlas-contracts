@@ -47,13 +47,6 @@ Not available yet — the schema build and SDK packaging are being set up
 ([#2](https://github.com/Vev-software/atlas-contracts/issues/2)). This section will
 carry the clone / build / publish steps once the pipeline lands.
 
-## Roadmap
-
-- [#1](https://github.com/Vev-software/atlas-contracts/issues/1) — [Epic] public data model & interop contracts
-- [#2](https://github.com/Vev-software/atlas-contracts/issues/2) — Repo scaffolding: schema build + .NET/TS SDK packaging + conformance tests + CI
-- [#3](https://github.com/Vev-software/atlas-contracts/issues/3) — Asset data model: systems / applications / servers / infrastructure (+ relationships & tags)
-- [#4](https://github.com/Vev-software/atlas-contracts/issues/4) — Import/export schemas (portability surface)
-
 ## Contributing
 
 One logical change per PR. See the Vev-software engineering handbook's contributing
