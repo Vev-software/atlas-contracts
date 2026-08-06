@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj" />
+  </ItemGroup>
+
+  <!-- Make the authoritative schemas and samples available to the test at runtime. -->
+  <ItemGroup>
+    <None Include="../../../schemas/**/*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="schemas/" />
+    <None Include="../../samples/**/*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="samples/" />
+  </ItemGroup>
+
+</Project>

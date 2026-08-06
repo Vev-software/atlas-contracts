@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/common.schema.json",
+  "title": "Atlas contracts — common types (v1)",
+  "description": "Shared catalogue vocabulary for the Atlas asset model. Catalogue concepts only: no integration-criticality, EOL risk, portfolio scoring or AI review (those work with the data and live in the private Atlas core). See handbook 11 §1.",
+  "$defs": {
+    "AssetKind": {
+      "type": "string",
+      "description": "The kind of asset held in the catalogue.",
+      "enum": ["system", "application", "server", "infrastructure"]
+    },
+    "Lifecycle": {
+      "type": "string",
+      "description": "Catalogue lifecycle state. Held metadata, not analysis.",
+      "enum": ["draft", "active", "retired"]
+    },
+    "AssetId": {
+      "type": "string",
+      "description": "Stable, opaque identifier for an asset. Never reused, never re-meaning'd once published.",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "Tag": {
+      "type": "object",
+      "description": "Manual, lightweight classification. A key with an optional value.",
+      "additionalProperties": false,
+      "required": ["key"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "value": {
+          "type": ["string", "null"],
+          "maxLength": 256
+        }
+      }
+    }
+  }
+}

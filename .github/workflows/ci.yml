@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: build · test · pack (public feeds only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (pinned by global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # A PUBLIC repo must build from public feeds only (AGENTS.md §1.9, 03 · F5).
+      # nuget.config clears all sources and adds nuget.org; restore proves it.
+      - name: Restore (.NET)
+        run: dotnet restore AtlasContracts.slnx
+
+      # Build enforces analyzers + TreatWarningsAsErrors (Directory.Build.props).
+      - name: Build (.NET)
+        run: dotnet build AtlasContracts.slnx -c Release --no-restore
+
+      # Formatting + style must be clean. Locally, `dotnet format AtlasContracts.slnx` fixes them.
+      - name: Lint (format verify)
+        run: dotnet format AtlasContracts.slnx --verify-no-changes --no-restore
+
+      # Conformance kit: schemas validate, and the .NET SDK serialises to a schema-valid shape.
+      - name: Test (conformance)
+        run: dotnet test AtlasContracts.slnx -c Release --no-build
+
+      # Prove the versioned NuGet package builds and carries the authoritative schemas.
+      - name: Pack (.NET SDK)
+        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release --no-build -o artifacts
+
+      # The TypeScript SDK builds and emits its declarations.
+      - name: Build (TypeScript SDK)
+        working-directory: sdk/typescript
+        run: |
+          npm install
+          npm run build
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-contracts-packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error

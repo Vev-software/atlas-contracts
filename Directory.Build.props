@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- atlas-contracts is PUBLIC, Apache-2.0 (handbook 02 §3, AGENTS.md §2). -->
+    <Company>VEV Software ApS</Company>
+    <Product>Atlas</Product>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Authors>VEV Software ApS</Authors>
+    <RepositoryUrl>https://github.com/Vev-software/atlas-contracts</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Contracts are versioned; breaking is expensive (AGENTS.md §4, 03 · E3). -->
+    <VersionPrefix>0.1.0</VersionPrefix>
+  </PropertyGroup>
+</Project>

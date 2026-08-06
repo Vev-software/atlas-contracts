@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/relationship.schema.json",
+  "title": "Atlas relationship (v1)",
+  "description": "A manual, catalogue-level typed link between two assets — held data expressing 'what runs on / connects to what'. NOT derived analysis: automatic integration mapping with ownership/criticality is paid Atlas core. See handbook 11 §1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "fromId", "toId", "type"],
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/AssetId" },
+    "fromId": { "$ref": "common.schema.json#/$defs/AssetId" },
+    "toId": { "$ref": "common.schema.json#/$defs/AssetId" },
+    "type": {
+      "type": "string",
+      "description": "The manual relationship vocabulary. Open set of held link types; adding a value is non-breaking.",
+      "enum": ["runs-on", "hosts", "connects-to", "depends-on", "part-of"]
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 1024
+    }
+  }
+}

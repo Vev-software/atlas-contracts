@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Vev.Atlas.Contracts</PackageId>
+    <Description>Public, versioned data model and interop contracts for VEV Atlas — the catalogue asset model (systems, applications, servers, infrastructure) plus manual relationships, tags and the landscape import/export document. Apache-2.0.</Description>
+    <PackageTags>vev;atlas;contracts;enterprise-architecture;interop</PackageTags>
+    <IncludeSchemasInPackage>true</IncludeSchemasInPackage>
+  </PropertyGroup>
+
+  <!-- Ship the authoritative JSON Schemas alongside the SDK so third parties can validate. -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../../../schemas/**/*.json" Pack="true" PackagePath="schemas/" />
+  </ItemGroup>
+
+</Project>
