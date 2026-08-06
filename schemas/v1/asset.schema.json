@@ -30,16 +30,7 @@
       "if": { "properties": { "kind": { "const": "application" } } },
       "then": {
         "properties": {
-          "application": {
-            "type": "object",
-            "description": "Held application metadata. Cataloguing only.",
-            "additionalProperties": false,
-            "properties": {
-              "version": { "type": ["string", "null"], "maxLength": 64 },
-              "vendor": { "type": ["string", "null"], "maxLength": 128 },
-              "businessOwner": { "type": ["string", "null"], "maxLength": 128 }
-            }
-          }
+          "application": { "$ref": "common.schema.json#/$defs/ApplicationDetails" }
         }
       }
     },
@@ -47,16 +38,7 @@
       "if": { "properties": { "kind": { "const": "server" } } },
       "then": {
         "properties": {
-          "server": {
-            "type": "object",
-            "description": "Held server metadata. OS is a recorded fact, not an EOL/risk assessment (that is paid Atlas core).",
-            "additionalProperties": false,
-            "properties": {
-              "hostname": { "type": ["string", "null"], "maxLength": 253 },
-              "environment": { "type": ["string", "null"], "maxLength": 64 },
-              "operatingSystem": { "type": ["string", "null"], "maxLength": 128 }
-            }
-          }
+          "server": { "$ref": "common.schema.json#/$defs/ServerDetails" }
         }
       }
     },
@@ -64,15 +46,7 @@
       "if": { "properties": { "kind": { "const": "infrastructure" } } },
       "then": {
         "properties": {
-          "infrastructure": {
-            "type": "object",
-            "description": "Held infrastructure metadata. Cataloguing only.",
-            "additionalProperties": false,
-            "properties": {
-              "category": { "type": ["string", "null"], "maxLength": 64 },
-              "location": { "type": ["string", "null"], "maxLength": 128 }
-            }
-          }
+          "infrastructure": { "$ref": "common.schema.json#/$defs/InfrastructureDetails" }
         }
       }
     }

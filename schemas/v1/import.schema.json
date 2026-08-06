@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/import.schema.json",
+  "title": "Atlas import bundle (v1)",
+  "description": "The import side of the portability surface: a batch of catalogue assets and manual relationships moved INTO Atlas. Unlike an export, assets may omit their Atlas 'id' (the runtime assigns one) and instead carry an importer-supplied 'externalId' used to resolve references and match on re-import. Catalogue data only — no paid-core analysis. See handbook 11 §2-3.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "kind", "assets"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this bundle conforms to.",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Discriminates an import bundle from an export document.",
+      "const": "import"
+    },
+    "mode": {
+      "type": "string",
+      "description": "How the bundle applies to the existing catalogue. 'merge' upserts by identifier; 'replace' makes the target match the bundle. The runtime enforces the semantics; this only records intent.",
+      "enum": ["merge", "replace"],
+      "default": "merge"
+    },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ImportAsset" }
+    },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ImportRelationship" },
+      "default": []
+    }
+  },
+  "$defs": {
+    "ImportAsset": {
+      "type": "object",
+      "description": "An asset to import. Must carry at least one of 'id' (an existing Atlas id) or 'externalId' (a source-system id), so it can be matched and referenced.",
+      "unevaluatedProperties": false,
+      "required": ["kind", "name", "lifecycle"],
+      "anyOf": [
+        { "required": ["id"] },
+        { "required": ["externalId"] }
+      ],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/AssetId" },
+        "externalId": { "$ref": "common.schema.json#/$defs/ExternalId" },
+        "kind": { "$ref": "common.schema.json#/$defs/AssetKind" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "description": { "type": ["string", "null"], "maxLength": 4096 },
+        "lifecycle": { "$ref": "common.schema.json#/$defs/Lifecycle" },
+        "tags": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/Tag" },
+          "default": []
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "application" } } },
+          "then": { "properties": { "application": { "$ref": "common.schema.json#/$defs/ApplicationDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "server" } } },
+          "then": { "properties": { "server": { "$ref": "common.schema.json#/$defs/ServerDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "infrastructure" } } },
+          "then": { "properties": { "infrastructure": { "$ref": "common.schema.json#/$defs/InfrastructureDetails" } } }
+        }
+      ]
+    },
+    "ImportRelationship": {
+      "type": "object",
+      "description": "A manual relationship to import. Endpoints are references (asset 'id' or 'externalId' present in this bundle), resolved by the runtime and checked by the conformance kit.",
+      "additionalProperties": false,
+      "required": ["fromRef", "toRef", "type"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/AssetId" },
+        "fromRef": { "$ref": "common.schema.json#/$defs/Ref" },
+        "toRef": { "$ref": "common.schema.json#/$defs/Ref" },
+        "type": {
+          "type": "string",
+          "description": "The manual relationship vocabulary. Mirrors relationship.schema.json.",
+          "enum": ["runs-on", "hosts", "connects-to", "depends-on", "part-of"]
+        },
+        "description": { "type": ["string", "null"], "maxLength": 1024 }
+      }
+    }
+  }
+}

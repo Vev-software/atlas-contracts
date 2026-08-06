@@ -1,0 +1,33 @@
+{
+  "contractVersion": "1",
+  "kind": "import",
+  "mode": "merge",
+  "assets": [
+    {
+      "externalId": "cmdb:SYS-0091",
+      "kind": "system",
+      "name": "Payments platform",
+      "lifecycle": "active",
+      "tags": [{ "key": "domain", "value": "finance" }]
+    },
+    {
+      "externalId": "cmdb:APP-1043",
+      "kind": "application",
+      "name": "Checkout service",
+      "lifecycle": "active",
+      "application": { "version": "4.2.1", "vendor": "in-house" }
+    },
+    {
+      "id": "srv-checkout-01",
+      "externalId": "cmdb:HOST-7781",
+      "kind": "server",
+      "name": "checkout-prod-01",
+      "lifecycle": "active",
+      "server": { "hostname": "checkout-prod-01.vev.internal", "environment": "production", "operatingSystem": "Ubuntu 24.04 LTS" }
+    }
+  ],
+  "relationships": [
+    { "fromRef": "cmdb:APP-1043", "toRef": "srv-checkout-01", "type": "runs-on" },
+    { "fromRef": "cmdb:APP-1043", "toRef": "cmdb:SYS-0091", "type": "part-of" }
+  ]
+}

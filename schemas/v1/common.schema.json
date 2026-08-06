@@ -38,6 +38,66 @@
           "maxLength": 256
         }
       }
+    },
+    "ExternalId": {
+      "type": "string",
+      "description": "An importer-supplied identifier from a source system, used to resolve references and to match on re-import. Opaque to Atlas; only unique within a single import bundle.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "Ref": {
+      "type": "string",
+      "description": "A reference to an asset within an import bundle — matching either an asset's 'id' or its 'externalId' present in the same bundle. Resolution is a bundle-level rule the conformance kit checks; JSON Schema only fixes the shape.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "Generator": {
+      "type": "object",
+      "description": "Provenance for an export: what produced the document. Held metadata, not analysis.",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The producing tool, e.g. 'Atlas Community'.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": ["string", "null"],
+          "description": "The producing tool's version, if known.",
+          "maxLength": 64
+        }
+      }
+    },
+    "ApplicationDetails": {
+      "type": "object",
+      "description": "Held application metadata. Cataloguing only.",
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": ["string", "null"], "maxLength": 64 },
+        "vendor": { "type": ["string", "null"], "maxLength": 128 },
+        "businessOwner": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "ServerDetails": {
+      "type": "object",
+      "description": "Held server metadata. OS is a recorded fact, not an EOL/risk assessment (that is paid Atlas core).",
+      "additionalProperties": false,
+      "properties": {
+        "hostname": { "type": ["string", "null"], "maxLength": 253 },
+        "environment": { "type": ["string", "null"], "maxLength": 64 },
+        "operatingSystem": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "InfrastructureDetails": {
+      "type": "object",
+      "description": "Held infrastructure metadata. Cataloguing only.",
+      "additionalProperties": false,
+      "properties": {
+        "category": { "type": ["string", "null"], "maxLength": 64 },
+        "location": { "type": ["string", "null"], "maxLength": 128 }
+      }
     }
   }
 }
