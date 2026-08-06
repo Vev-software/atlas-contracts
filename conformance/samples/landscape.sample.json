@@ -1,0 +1,41 @@
+{
+  "contractVersion": "1",
+  "exportedAt": "2026-08-05T09:00:00Z",
+  "assets": [
+    {
+      "id": "sys-payments",
+      "kind": "system",
+      "name": "Payments platform",
+      "lifecycle": "active",
+      "tags": [{ "key": "domain", "value": "finance" }]
+    },
+    {
+      "id": "app-checkout",
+      "kind": "application",
+      "name": "Checkout service",
+      "lifecycle": "active",
+      "description": "Customer-facing checkout API.",
+      "tags": [{ "key": "tier", "value": "critical-path" }, { "key": "public" }],
+      "application": { "version": "4.2.1", "vendor": "in-house", "businessOwner": "Payments team" }
+    },
+    {
+      "id": "srv-checkout-01",
+      "kind": "server",
+      "name": "checkout-prod-01",
+      "lifecycle": "active",
+      "server": { "hostname": "checkout-prod-01.vev.internal", "environment": "production", "operatingSystem": "Ubuntu 24.04 LTS" }
+    },
+    {
+      "id": "infra-vpc-eu",
+      "kind": "infrastructure",
+      "name": "EU production VPC",
+      "lifecycle": "active",
+      "infrastructure": { "category": "network", "location": "eu-north-1" }
+    }
+  ],
+  "relationships": [
+    { "id": "rel-1", "fromId": "app-checkout", "toId": "srv-checkout-01", "type": "runs-on" },
+    { "id": "rel-2", "fromId": "app-checkout", "toId": "sys-payments", "type": "part-of" },
+    { "id": "rel-3", "fromId": "srv-checkout-01", "toId": "infra-vpc-eu", "type": "depends-on", "description": "Network dependency" }
+  ]
+}

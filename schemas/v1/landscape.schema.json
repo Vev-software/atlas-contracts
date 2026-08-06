@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/landscape.schema.json",
+  "title": "Atlas landscape document (v1)",
+  "description": "The portability surface: a whole landscape (assets + manual relationships) carried across a boundary. Backs customer-owned data export and community importers/exporters. See handbook 11 §2-3, 12 §Phase C.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "assets"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this document conforms to.",
+      "const": "1"
+    },
+    "exportedAt": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "asset.schema.json" }
+    },
+    "relationships": {
+      "type": "array",
+      "items": { "$ref": "relationship.schema.json" },
+      "default": []
+    }
+  }
+}

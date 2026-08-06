@@ -1,0 +1,20 @@
+{
+  "name": "@vev-software/atlas-contracts",
+  "version": "0.1.0",
+  "description": "Public, versioned data model and interop contracts for VEV Atlas — the catalogue asset model plus manual relationships, tags and the landscape import/export document.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "schemas"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vev-software/atlas-contracts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

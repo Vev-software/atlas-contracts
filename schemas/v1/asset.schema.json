@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/asset.schema.json",
+  "title": "Atlas asset (v1)",
+  "description": "A single catalogued asset: a system, application, server or infrastructure item, plus manual tags. Kind-specific attributes are held facts (e.g. a server's OS name), never analysis (no EOL dates/risk, no criticality). See handbook 11 §1.",
+  "type": "object",
+  "unevaluatedProperties": false,
+  "required": ["id", "kind", "name", "lifecycle"],
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/AssetId" },
+    "kind": { "$ref": "common.schema.json#/$defs/AssetKind" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 4096
+    },
+    "lifecycle": { "$ref": "common.schema.json#/$defs/Lifecycle" },
+    "tags": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Tag" },
+      "default": []
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "application" } } },
+      "then": {
+        "properties": {
+          "application": {
+            "type": "object",
+            "description": "Held application metadata. Cataloguing only.",
+            "additionalProperties": false,
+            "properties": {
+              "version": { "type": ["string", "null"], "maxLength": 64 },
+              "vendor": { "type": ["string", "null"], "maxLength": 128 },
+              "businessOwner": { "type": ["string", "null"], "maxLength": 128 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "server" } } },
+      "then": {
+        "properties": {
+          "server": {
+            "type": "object",
+            "description": "Held server metadata. OS is a recorded fact, not an EOL/risk assessment (that is paid Atlas core).",
+            "additionalProperties": false,
+            "properties": {
+              "hostname": { "type": ["string", "null"], "maxLength": 253 },
+              "environment": { "type": ["string", "null"], "maxLength": 64 },
+              "operatingSystem": { "type": ["string", "null"], "maxLength": 128 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "infrastructure" } } },
+      "then": {
+        "properties": {
+          "infrastructure": {
+            "type": "object",
+            "description": "Held infrastructure metadata. Cataloguing only.",
+            "additionalProperties": false,
+            "properties": {
+              "category": { "type": ["string", "null"], "maxLength": 64 },
+              "location": { "type": ["string", "null"], "maxLength": 128 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

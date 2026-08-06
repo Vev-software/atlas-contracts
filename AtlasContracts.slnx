@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/conformance/" />
+  <Folder Name="/conformance/dotnet/">
+    <Project Path="conformance/dotnet/Vev.Atlas.Contracts.Conformance.Tests/Vev.Atlas.Contracts.Conformance.Tests.csproj" />
+  </Folder>
+  <Folder Name="/sdk/" />
+  <Folder Name="/sdk/dotnet/">
+    <Project Path="sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj" />
+  </Folder>
+</Solution>
