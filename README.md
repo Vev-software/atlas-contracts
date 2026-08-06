@@ -66,10 +66,20 @@ Layout:
 - `sdk/typescript/` — the `@vev-software/atlas-contracts` npm package.
 - `conformance/` — a runnable kit a third party or the Atlas runtime uses to prove
   a payload matches the published schemas.
+- `docs/` — contract documentation, including the
+  [portability surface](docs/portability.md) (import & export).
 
 Third parties consume the published packages and run the conformance kit against
 their own import/export payloads; the Atlas runtime pins a released contract version
 and validates its exports against the same schemas.
+
+## Portability (import & export)
+
+The catalogue moves across a boundary through two documents: a **landscape** export
+(the customer-owned data-export promise) and an **import bundle** (third-party interop,
+with `externalId` reference resolution and a merge/replace mode). Both carry catalogue
+data only — no paid-core analysis. See [`docs/portability.md`](docs/portability.md) for
+the document shapes, reference resolution, and the versioning/compatibility policy.
 
 ## Contributing
 

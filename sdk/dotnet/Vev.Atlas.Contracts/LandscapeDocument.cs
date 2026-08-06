@@ -5,17 +5,20 @@ using System.Text.Json.Serialization;
 namespace Vev.Atlas.Contracts;
 
 /// <summary>
-/// The portability surface: a whole landscape (assets + manual relationships) carried across a
-/// boundary. Backs customer-owned data export and community importers/exporters
-/// (handbook 11 §2-3, 12 §Phase C).
+/// The export side of the portability surface: a whole landscape (assets + manual relationships)
+/// carried across a boundary as a self-consistent, resolved document. Backs customer-owned data
+/// export and community exporters (handbook 11 §2-3, 12 §Phase C). The matching import side is
+/// <see cref="ImportBundle"/>.
 /// </summary>
 /// <param name="Assets">The catalogued assets.</param>
 /// <param name="Relationships">The manual relationships between assets.</param>
 /// <param name="ExportedAt">When the document was produced, if known.</param>
+/// <param name="Generator">Optional provenance: what produced this export.</param>
 public sealed record LandscapeDocument(
     [property: JsonPropertyName("assets")] ImmutableArray<Asset> Assets,
     ImmutableArray<Relationship> Relationships = default,
-    [property: JsonPropertyName("exportedAt")] DateTimeOffset? ExportedAt = null)
+    [property: JsonPropertyName("exportedAt")] DateTimeOffset? ExportedAt = null,
+    [property: JsonPropertyName("generator")] Generator? Generator = null)
 {
     /// <summary>The atlas-contracts schema major version this document conforms to.</summary>
     [JsonPropertyName("contractVersion")]
@@ -26,6 +29,13 @@ public sealed record LandscapeDocument(
     public ImmutableArray<Relationship> Relationships { get; init; } =
         Relationships.IsDefault ? [] : Relationships;
 }
+
+/// <summary>Provenance for an export: what produced the document. Held metadata, not analysis.</summary>
+/// <param name="Name">The producing tool, e.g. "Atlas Community".</param>
+/// <param name="Version">The producing tool's version, if known.</param>
+public sealed record Generator(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("version")] string? Version = null);
 
 /// <summary>Contract-wide constants and the canonical serializer options for Atlas contracts.</summary>
 public static class AtlasContracts
