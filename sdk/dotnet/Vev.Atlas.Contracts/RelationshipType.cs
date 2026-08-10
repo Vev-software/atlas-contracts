@@ -26,7 +26,11 @@ public enum RelationshipType
     [JsonStringEnumMemberName("depends-on")]
     DependsOn,
 
-    /// <summary>Source is part of target (e.g. application → system).</summary>
+    /// <summary>Source is part of target (e.g. application → system). Also carries data-layer containment: column → dataset → data-area → system.</summary>
     [JsonStringEnumMemberName("part-of")]
-    PartOf
+    PartOf,
+
+    /// <summary>Source joins on target: a held cross-dataset join key (nøgle) between columns/datasets, not a measured or derived join.</summary>
+    [JsonStringEnumMemberName("joins-on")]
+    JoinsOn
 }

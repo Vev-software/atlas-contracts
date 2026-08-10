@@ -14,22 +14,10 @@ namespace Vev.Atlas.Contracts.Conformance.Tests;
 /// </summary>
 public sealed class PortabilityConformanceTests
 {
-    private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas", "v1");
-    private static readonly string SampleDir = Path.Combine(AppContext.BaseDirectory, "samples");
+    private static readonly string SampleDir = TestSchemas.SampleDir;
 
-    private static readonly JsonSchema ImportSchema = BuildSchema("import.schema.json");
-    private static readonly JsonSchema LandscapeSchema = BuildSchema("landscape.schema.json");
-
-    private static JsonSchema BuildSchema(string entry)
-    {
-        // Register every schema by its $id so relative $refs resolve against the registry, offline.
-        foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json"))
-        {
-            SchemaRegistry.Global.Register(JsonSchema.FromText(File.ReadAllText(file)));
-        }
-
-        return JsonSchema.FromText(File.ReadAllText(Path.Combine(SchemaDir, entry)));
-    }
+    private static readonly JsonSchema ImportSchema = TestSchemas.Load("import.schema.json");
+    private static readonly JsonSchema LandscapeSchema = TestSchemas.Load("landscape.schema.json");
 
     private static EvaluationResults Evaluate(JsonSchema schema, JsonNode? instance) =>
         schema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });

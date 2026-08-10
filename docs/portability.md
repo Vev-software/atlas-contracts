@@ -81,6 +81,46 @@ var dangling = bundle.UnresolvedReferences(); // empty ⇒ internally self-consi
 A non-empty result is only an error for a *self-contained* bundle; an endpoint may also
 resolve against an asset already in the catalogue, which the bundle alone cannot see.
 
+## Data layer — down to the column
+
+The catalogue models the data architecture *beneath* a system, so an export can carry it
+across a boundary with no loss. Three additional asset kinds extend the same asset model
+(reusing its authoring, tags, relationships and portability plumbing — no parallel store):
+
+| Kind | Danish | Held metadata (`*Details`) | Cataloguing only — never |
+|---|---|---|---|
+| `data-area` | dataområde | `dataArea.realisation` | — |
+| `dataset` | datamodel | `dataset.physicalName`, `dataset.owner` | quality/classification verdicts |
+| `column` | kolonne | `column.dataType`, `column.nullable` | quality score, classification, PII/sensitivity flag |
+
+Held facts only: a column carries its **name + declared type**, never an analysis verdict
+(that works with the data and is paid Atlas core, `11 §1`). The schema enforces this —
+`ColumnDetails` is `additionalProperties: false`, so a stray `classification` field is
+rejected.
+
+**Containment** is expressed with the existing `part-of` relationship, forming one chain:
+
+```
+column  ──part-of──▶  dataset  ──part-of──▶  data-area  ──part-of──▶  system
+```
+
+**Keys** (nøgler) are cross-dataset joins, modelled as a first-class `joins-on`
+relationship between columns (or datasets) — a held link, not a measured/derived join.
+
+### Containment validation
+
+JSON Schema fixes each entity's shape but cannot express "every higher level points down
+to a concrete dataset/column". The SDK provides that bundle-level invariant:
+
+```csharp
+var errors = landscape.DataLayerContainmentErrors(); // empty ⇒ every column→dataset→data-area→system resolves
+```
+
+Each `column` must be `part-of` exactly one `dataset`, each `dataset` exactly one
+`data-area`, and each `data-area` exactly one `system`; anything else (a loose column, an
+ambiguous parent, a skipped level) is reported. This is the invariant the catalogue's
+"navigate all the way to the column" experience relies on.
+
 ## Validating a document
 
 Everything builds from public feeds only. To self-certify a payload, run it against the

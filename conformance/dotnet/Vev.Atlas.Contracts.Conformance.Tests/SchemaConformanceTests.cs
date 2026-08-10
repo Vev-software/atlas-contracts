@@ -12,23 +12,9 @@ namespace Vev.Atlas.Contracts.Conformance.Tests;
 /// </summary>
 public sealed class SchemaConformanceTests
 {
-    private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas", "v1");
-    private static readonly string SampleDir = Path.Combine(AppContext.BaseDirectory, "samples");
+    private static readonly string SampleDir = TestSchemas.SampleDir;
 
-    private static readonly JsonSchema LandscapeSchema = BuildLandscapeSchema();
-
-    private static JsonSchema BuildLandscapeSchema()
-    {
-        // Register every schema by its $id so relative $refs (e.g. "common.schema.json#/$defs/...")
-        // resolve against the registry rather than the network.
-        foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json"))
-        {
-            var schema = JsonSchema.FromText(File.ReadAllText(file));
-            SchemaRegistry.Global.Register(schema);
-        }
-
-        return JsonSchema.FromText(File.ReadAllText(Path.Combine(SchemaDir, "landscape.schema.json")));
-    }
+    private static readonly JsonSchema LandscapeSchema = TestSchemas.Load("landscape.schema.json");
 
     private static EvaluationResults Evaluate(JsonNode? instance) =>
         LandscapeSchema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
