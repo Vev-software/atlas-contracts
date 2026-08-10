@@ -1,0 +1,45 @@
+{
+  "contractVersion": "1",
+  "kind": "discovery-observation",
+  "source": {
+    "agentId": "agent-eu-north-1-01",
+    "method": "agent",
+    "version": "0.1.0"
+  },
+  "observedAt": "2026-08-10T07:30:00Z",
+  "observations": [
+    {
+      "observedId": "host:5f3c9a2e-checkout-prod-01",
+      "kind": "server",
+      "name": "checkout-prod-01",
+      "fingerprint": [
+        { "key": "machine-id", "value": "5f3c9a2e8b7d4c1f9a0e2b6d3c4f5a1b" },
+        { "key": "cloud-instance-id", "value": "i-0abcd1234ef567890" }
+      ],
+      "server": { "hostname": "checkout-prod-01.vev.internal", "environment": "production", "operatingSystem": "Ubuntu 24.04 LTS" },
+      "ports": [
+        { "port": 443, "protocol": "tcp" },
+        { "port": 22, "protocol": "tcp", "address": "10.0.4.11" }
+      ],
+      "processes": [
+        { "name": "nginx", "port": 443 },
+        { "name": "checkout-api", "port": 8080 }
+      ],
+      "packages": [
+        { "name": "openssl", "version": "3.0.13" },
+        { "name": "dotnet-runtime", "version": "8.0.7" }
+      ],
+      "lastSeen": "2026-08-10T07:30:00Z"
+    },
+    {
+      "observedId": "proc:checkout-api@checkout-prod-01",
+      "kind": "application",
+      "name": "Checkout API",
+      "fingerprint": [
+        { "key": "listen", "value": "checkout-prod-01:8080" }
+      ],
+      "application": { "version": "4.2.1", "vendor": "in-house" },
+      "tags": [{ "key": "discovered-by", "value": "port-scan" }]
+    }
+  ]
+}

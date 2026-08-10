@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/discovery-observation.schema.json",
+  "title": "Atlas discovery observation batch (v1)",
+  "description": "The public wire format a discovery scanner emits INTO Atlas: a batch of raw observations of an IT landscape (servers, applications, infrastructure) that the private Atlas Enterprise reconciliation engine correlates, deduplicates and turns into catalogue assets. This contract carries facts only — an observation has no Atlas 'id' and no 'lifecycle' (the reconciler assigns those), and never any analysis (no EOL/risk, no criticality, no portfolio scoring). Open so third parties can build scanners; the reconciliation logic that consumes it is the private moat and is NOT part of this repo. See handbook 11 §3, 12 §Phase A, and vev-software/atlas-enterprise#6/#9.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "kind", "source", "observedAt", "observations"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this batch conforms to.",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Discriminates a discovery observation batch from the import/export documents.",
+      "const": "discovery-observation"
+    },
+    "source": {
+      "description": "Provenance of the batch: which scanner produced it and how.",
+      "$ref": "#/$defs/ObservationSource"
+    },
+    "observedAt": {
+      "type": "string",
+      "description": "When the scan that produced this batch was taken.",
+      "format": "date-time"
+    },
+    "observations": {
+      "type": "array",
+      "description": "The raw observations in this batch. May be empty (a scan that saw nothing new).",
+      "items": { "$ref": "#/$defs/Observation" },
+      "default": []
+    }
+  },
+  "$defs": {
+    "ObservationSource": {
+      "type": "object",
+      "description": "Which scanner produced the batch. The authoritative tenant binding is the authenticated machine-principal at ingestion (a Fabric concern), NOT this payload; 'tenantRef' is an optional, opaque hint only.",
+      "additionalProperties": false,
+      "required": ["agentId", "method"],
+      "properties": {
+        "agentId": {
+          "type": "string",
+          "description": "Stable identifier of the emitting agent or collector. Constant across scans so the reconciler can attribute observations to a source.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "method": {
+          "type": "string",
+          "description": "How the batch was collected: an installed 'agent' in the landscape, or 'agentless' remote scanning from a collector.",
+          "enum": ["agent", "agentless"]
+        },
+        "version": {
+          "type": ["string", "null"],
+          "description": "The scanner's version, if known.",
+          "maxLength": 64
+        },
+        "tenantRef": {
+          "type": ["string", "null"],
+          "description": "Optional opaque tenant hint. Not authoritative — ingestion binds tenancy from the authenticated principal.",
+          "maxLength": 256
+        }
+      }
+    },
+    "Observation": {
+      "type": "object",
+      "description": "A single raw sighting of something in the landscape. Facts only: no Atlas 'id' and no 'lifecycle' (the private reconciler assigns identity and catalogue state), and no analysis. Kind-specific held facts reuse the catalogue vocabulary; discovery-only facts (ports/processes/packages) are additional observations, not catalogue analysis.",
+      "unevaluatedProperties": false,
+      "required": ["observedId", "kind", "name"],
+      "properties": {
+        "observedId": {
+          "type": "string",
+          "description": "A scanner-local identifier for the observed thing, stable across scans from the same source. NOT an Atlas asset id — the reconciler decides the catalogue identity.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": { "$ref": "common.schema.json#/$defs/AssetKind" },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fingerprint": {
+          "type": "array",
+          "description": "Durable attributes the reconciler may correlate on (e.g. machine-id, MAC, serial, cloud instance id) — deliberately more than a hostname. Carried as facts; how they are weighted for matching is private reconciler logic, not part of this contract.",
+          "items": { "$ref": "#/$defs/FingerprintAttribute" },
+          "default": []
+        },
+        "ports": {
+          "type": "array",
+          "description": "Observed listening ports (a fact, not an integration map).",
+          "items": { "$ref": "#/$defs/ObservedPort" },
+          "default": []
+        },
+        "processes": {
+          "type": "array",
+          "description": "Observed running processes / services (facts).",
+          "items": { "$ref": "#/$defs/ObservedProcess" },
+          "default": []
+        },
+        "packages": {
+          "type": "array",
+          "description": "Observed installed runtimes / packages (facts).",
+          "items": { "$ref": "#/$defs/ObservedPackage" },
+          "default": []
+        },
+        "tags": {
+          "type": "array",
+          "description": "Observed lightweight labels (e.g. a cloud resource tag).",
+          "items": { "$ref": "common.schema.json#/$defs/Tag" },
+          "default": []
+        },
+        "firstSeen": {
+          "type": ["string", "null"],
+          "description": "When the source first saw this thing, if tracked.",
+          "format": "date-time"
+        },
+        "lastSeen": {
+          "type": ["string", "null"],
+          "description": "When the source most recently saw this thing, if tracked.",
+          "format": "date-time"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "application" } } },
+          "then": { "properties": { "application": { "$ref": "common.schema.json#/$defs/ApplicationDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "server" } } },
+          "then": { "properties": { "server": { "$ref": "common.schema.json#/$defs/ServerDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "infrastructure" } } },
+          "then": { "properties": { "infrastructure": { "$ref": "common.schema.json#/$defs/InfrastructureDetails" } } }
+        }
+      ]
+    },
+    "FingerprintAttribute": {
+      "type": "object",
+      "description": "One durable correlation attribute: a key and its observed value (both required — unlike a Tag, a fingerprint carries no valueless keys).",
+      "additionalProperties": false,
+      "required": ["key", "value"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "ObservedPort": {
+      "type": "object",
+      "description": "An observed listening port. A recorded fact; not a measured integration.",
+      "additionalProperties": false,
+      "required": ["port"],
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "protocol": {
+          "type": ["string", "null"],
+          "enum": ["tcp", "udp", null]
+        },
+        "address": {
+          "type": ["string", "null"],
+          "description": "The bind address the port was seen on, if known.",
+          "maxLength": 253
+        }
+      }
+    },
+    "ObservedProcess": {
+      "type": "object",
+      "description": "An observed running process or service. A recorded fact.",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "port": {
+          "type": ["integer", "null"],
+          "description": "The port the process was seen listening on, if known.",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "ObservedPackage": {
+      "type": "object",
+      "description": "An observed installed runtime or package. A recorded fact; the version is what was seen, not an EOL/risk assessment (that is paid Atlas core).",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "version": {
+          "type": ["string", "null"],
+          "maxLength": 128
+        }
+      }
+    }
+  }
+}

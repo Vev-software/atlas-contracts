@@ -29,6 +29,9 @@ published to nuget.org / npm. Follow the epic and the open work in
   - the **import/export document schemas** that carry a whole landscape across a
     boundary (customer-owned data export; community importers/exporters such as
     ArchiMate/BPMN),
+  - the **discovery ingestion contract** ([`docs/discovery.md`](docs/discovery.md)) —
+    the wire format a scanner emits into Atlas, so third parties can build scanners while
+    the private reconciliation engine stays out of this repo,
   - **conformance tests** third parties can run, and
   - the **.NET and TypeScript SDKs** generated from the schemas.
 - **Is not:** the Atlas application. The runtime lives in separate repositories
