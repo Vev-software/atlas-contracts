@@ -6,8 +6,8 @@
   "$defs": {
     "AssetKind": {
       "type": "string",
-      "description": "The kind of asset held in the catalogue.",
-      "enum": ["system", "application", "server", "infrastructure"]
+      "description": "The kind of asset held in the catalogue. The data-layer kinds (data-area, dataset, column) model the data architecture beneath a system, down to the column.",
+      "enum": ["system", "application", "server", "infrastructure", "data-area", "dataset", "column"]
     },
     "Lifecycle": {
       "type": "string",
@@ -97,6 +97,32 @@
       "properties": {
         "category": { "type": ["string", "null"], "maxLength": 64 },
         "location": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "DataAreaDetails": {
+      "type": "object",
+      "description": "Held metadata for a data area (dataområde) — a logical grouping of datasets inside one system. Cataloguing only; 'realisation' is free metadata (e.g. microservice, reference-catalogue, spreadsheet), not a locked vocabulary and not analysis.",
+      "additionalProperties": false,
+      "properties": {
+        "realisation": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "DatasetDetails": {
+      "type": "object",
+      "description": "Held metadata for a dataset (datamodel) — one table / one dataset. Cataloguing only: physical name and ownership are recorded facts, never quality or classification verdicts (those work with the data and are paid Atlas core).",
+      "additionalProperties": false,
+      "properties": {
+        "physicalName": { "type": ["string", "null"], "maxLength": 256 },
+        "owner": { "type": ["string", "null"], "maxLength": 128 }
+      }
+    },
+    "ColumnDetails": {
+      "type": "object",
+      "description": "Held metadata for a column (kolonne) — a concrete field on a dataset. The declared data type and nullability are recorded facts. NO analysis: no quality score, no classification verdict, no PII/sensitivity flag (those are paid Atlas core, handbook 11 §1).",
+      "additionalProperties": false,
+      "properties": {
+        "dataType": { "type": ["string", "null"], "maxLength": 128 },
+        "nullable": { "type": ["boolean", "null"] }
       }
     }
   }

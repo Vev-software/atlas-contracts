@@ -17,6 +17,9 @@ namespace Vev.Atlas.Contracts;
 /// <param name="Application">Held application metadata, when <see cref="Kind"/> is <see cref="AssetKind.Application"/>.</param>
 /// <param name="Server">Held server metadata, when <see cref="Kind"/> is <see cref="AssetKind.Server"/>.</param>
 /// <param name="Infrastructure">Held infrastructure metadata, when <see cref="Kind"/> is <see cref="AssetKind.Infrastructure"/>.</param>
+/// <param name="DataArea">Held data-area metadata, when <see cref="Kind"/> is <see cref="AssetKind.DataArea"/>.</param>
+/// <param name="Dataset">Held dataset metadata, when <see cref="Kind"/> is <see cref="AssetKind.Dataset"/>.</param>
+/// <param name="Column">Held column metadata, when <see cref="Kind"/> is <see cref="AssetKind.Column"/>.</param>
 public sealed record Asset(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("kind")] AssetKind Kind,
@@ -26,7 +29,10 @@ public sealed record Asset(
     ImmutableArray<Tag> Tags = default,
     [property: JsonPropertyName("application")] ApplicationDetails? Application = null,
     [property: JsonPropertyName("server")] ServerDetails? Server = null,
-    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null)
+    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
+    [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
+    [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
+    [property: JsonPropertyName("column")] ColumnDetails? Column = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]
@@ -49,3 +55,33 @@ public sealed record ServerDetails(
 public sealed record InfrastructureDetails(
     [property: JsonPropertyName("category")] string? Category = null,
     [property: JsonPropertyName("location")] string? Location = null);
+
+/// <summary>
+/// Held data-area (dataområde) metadata. Cataloguing only: <paramref name="Realisation"/> is free
+/// metadata (e.g. "microservice", "reference-catalogue", "spreadsheet"), not a locked vocabulary
+/// and not analysis.
+/// </summary>
+/// <param name="Realisation">How the data area is realised, if known. Free-text metadata.</param>
+public sealed record DataAreaDetails(
+    [property: JsonPropertyName("realisation")] string? Realisation = null);
+
+/// <summary>
+/// Held dataset (datamodel) metadata. Physical name and ownership are recorded facts, never quality
+/// or classification verdicts (those work with the data and are paid Atlas core, handbook 11 §1).
+/// </summary>
+/// <param name="PhysicalName">The dataset's physical/table name in the source system, if known.</param>
+/// <param name="Owner">The recorded owner of the dataset, if known.</param>
+public sealed record DatasetDetails(
+    [property: JsonPropertyName("physicalName")] string? PhysicalName = null,
+    [property: JsonPropertyName("owner")] string? Owner = null);
+
+/// <summary>
+/// Held column (kolonne) metadata. The declared data type and nullability are recorded facts.
+/// NO analysis: no quality score, no classification verdict, no PII/sensitivity flag — those are
+/// paid Atlas core (handbook 11 §1).
+/// </summary>
+/// <param name="DataType">The column's declared data type as a held fact (e.g. "varchar(64)", "int").</param>
+/// <param name="Nullable">Whether the column is nullable, if known. A held schema fact, not analysis.</param>
+public sealed record ColumnDetails(
+    [property: JsonPropertyName("dataType")] string? DataType = null,
+    [property: JsonPropertyName("nullable")] bool? Nullable = null);

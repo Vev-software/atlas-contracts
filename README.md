@@ -23,7 +23,9 @@ published to nuget.org / npm. Follow the epic and the open work in
 
 - **Is:** the public contract surface for Atlas —
   - the **asset data model** (systems, applications, servers, infrastructure, plus
-    the manual relationships and tags that connect and classify them),
+    the manual relationships and tags that connect and classify them), extended
+    **down to the column** with the data layer (data areas, datasets, columns and
+    the `joins-on` key),
   - the **import/export document schemas** that carry a whole landscape across a
     boundary (customer-owned data export; community importers/exporters such as
     ArchiMate/BPMN),

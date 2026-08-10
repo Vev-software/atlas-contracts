@@ -98,6 +98,9 @@ public sealed record ImportBundle(
 /// <param name="Application">Held application metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Application"/>.</param>
 /// <param name="Server">Held server metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Server"/>.</param>
 /// <param name="Infrastructure">Held infrastructure metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Infrastructure"/>.</param>
+/// <param name="DataArea">Held data-area metadata, when <paramref name="Kind"/> is <see cref="AssetKind.DataArea"/>.</param>
+/// <param name="Dataset">Held dataset metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Dataset"/>.</param>
+/// <param name="Column">Held column metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Column"/>.</param>
 public sealed record ImportAsset(
     [property: JsonPropertyName("kind")] AssetKind Kind,
     [property: JsonPropertyName("name")] string Name,
@@ -108,7 +111,10 @@ public sealed record ImportAsset(
     ImmutableArray<Tag> Tags = default,
     [property: JsonPropertyName("application")] ApplicationDetails? Application = null,
     [property: JsonPropertyName("server")] ServerDetails? Server = null,
-    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null)
+    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
+    [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
+    [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
+    [property: JsonPropertyName("column")] ColumnDetails? Column = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]

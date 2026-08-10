@@ -7,7 +7,14 @@
 /** The atlas-contracts schema major version. */
 export const CONTRACT_VERSION = "1" as const;
 
-export type AssetKind = "system" | "application" | "server" | "infrastructure";
+export type AssetKind =
+  | "system"
+  | "application"
+  | "server"
+  | "infrastructure"
+  | "data-area"
+  | "dataset"
+  | "column";
 
 export type Lifecycle = "draft" | "active" | "retired";
 
@@ -16,7 +23,8 @@ export type RelationshipType =
   | "hosts"
   | "connects-to"
   | "depends-on"
-  | "part-of";
+  | "part-of"
+  | "joins-on";
 
 /** A manual, lightweight classification: a key with an optional value. */
 export interface Tag {
@@ -44,6 +52,32 @@ export interface InfrastructureDetails {
   location?: string | null;
 }
 
+/**
+ * Held data-area (dataområde) metadata. Cataloguing only: `realisation` is free metadata
+ * (e.g. "microservice", "reference-catalogue", "spreadsheet"), not a locked vocabulary and not analysis.
+ */
+export interface DataAreaDetails {
+  realisation?: string | null;
+}
+
+/**
+ * Held dataset (datamodel) metadata. Physical name and ownership are recorded facts, never quality
+ * or classification verdicts (those are paid Atlas core).
+ */
+export interface DatasetDetails {
+  physicalName?: string | null;
+  owner?: string | null;
+}
+
+/**
+ * Held column (kolonne) metadata. The declared data type and nullability are recorded facts.
+ * NO analysis: no quality score, no classification verdict, no PII/sensitivity flag (paid Atlas core).
+ */
+export interface ColumnDetails {
+  dataType?: string | null;
+  nullable?: boolean | null;
+}
+
 /** A single catalogued asset. */
 export interface Asset {
   id: string;
@@ -55,6 +89,9 @@ export interface Asset {
   application?: ApplicationDetails;
   server?: ServerDetails;
   infrastructure?: InfrastructureDetails;
+  dataArea?: DataAreaDetails;
+  dataset?: DatasetDetails;
+  column?: ColumnDetails;
 }
 
 /** A manual, catalogue-level typed link between two assets. */
@@ -102,6 +139,9 @@ export interface ImportAsset {
   application?: ApplicationDetails;
   server?: ServerDetails;
   infrastructure?: InfrastructureDetails;
+  dataArea?: DataAreaDetails;
+  dataset?: DatasetDetails;
+  column?: ColumnDetails;
 }
 
 /**

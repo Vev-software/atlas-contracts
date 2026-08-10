@@ -21,5 +21,17 @@ public enum AssetKind
 
     /// <summary>An infrastructure item (network, storage, compute, …).</summary>
     [JsonStringEnumMemberName("infrastructure")]
-    Infrastructure
+    Infrastructure,
+
+    /// <summary>A data area (dataområde): a logical grouping of datasets inside one system.</summary>
+    [JsonStringEnumMemberName("data-area")]
+    DataArea,
+
+    /// <summary>A dataset (datamodel): one table / one dataset within a data area.</summary>
+    [JsonStringEnumMemberName("dataset")]
+    Dataset,
+
+    /// <summary>A column (kolonne): a concrete field on a dataset.</summary>
+    [JsonStringEnumMemberName("column")]
+    Column
 }

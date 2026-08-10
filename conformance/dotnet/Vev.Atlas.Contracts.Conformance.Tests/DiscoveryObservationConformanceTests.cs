@@ -15,22 +15,9 @@ namespace Vev.Atlas.Contracts.Conformance.Tests;
 /// </summary>
 public sealed class DiscoveryObservationConformanceTests
 {
-    private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas", "v1");
-    private static readonly string SampleDir = Path.Combine(AppContext.BaseDirectory, "samples");
+    private static readonly string SampleDir = TestSchemas.SampleDir;
 
-    private static readonly JsonSchema DiscoverySchema = BuildSchema("discovery-observation.schema.json");
-
-    private static JsonSchema BuildSchema(string entry)
-    {
-        // Register every schema by its $id so relative $refs (common.schema.json#/$defs/…) resolve
-        // against the registry, offline.
-        foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json"))
-        {
-            SchemaRegistry.Global.Register(JsonSchema.FromText(File.ReadAllText(file)));
-        }
-
-        return JsonSchema.FromText(File.ReadAllText(Path.Combine(SchemaDir, entry)));
-    }
+    private static readonly JsonSchema DiscoverySchema = TestSchemas.Load("discovery-observation.schema.json");
 
     private static EvaluationResults Evaluate(JsonNode? instance) =>
         DiscoverySchema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });

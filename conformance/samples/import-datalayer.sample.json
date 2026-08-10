@@ -1,0 +1,55 @@
+{
+  "contractVersion": "1",
+  "kind": "import",
+  "mode": "merge",
+  "assets": [
+    {
+      "externalId": "src:sys-crm",
+      "kind": "system",
+      "name": "CRM platform",
+      "lifecycle": "active"
+    },
+    {
+      "externalId": "src:da-customers",
+      "kind": "data-area",
+      "name": "Customer master data",
+      "lifecycle": "active",
+      "dataArea": { "realisation": "microservice" }
+    },
+    {
+      "externalId": "src:ds-customers",
+      "kind": "dataset",
+      "name": "Customers",
+      "lifecycle": "active",
+      "dataset": { "physicalName": "dbo.customers", "owner": "CRM team" }
+    },
+    {
+      "externalId": "src:col-customer-id",
+      "kind": "column",
+      "name": "customer_id",
+      "lifecycle": "active",
+      "column": { "dataType": "uuid", "nullable": false }
+    },
+    {
+      "externalId": "src:ds-invoices",
+      "kind": "dataset",
+      "name": "Invoices",
+      "lifecycle": "active",
+      "dataset": { "physicalName": "dbo.invoices", "owner": "Finance team" }
+    },
+    {
+      "externalId": "src:col-invoice-customer",
+      "kind": "column",
+      "name": "customer_id",
+      "lifecycle": "active",
+      "column": { "dataType": "uuid", "nullable": false }
+    }
+  ],
+  "relationships": [
+    { "fromRef": "src:da-customers", "toRef": "src:sys-crm", "type": "part-of" },
+    { "fromRef": "src:ds-customers", "toRef": "src:da-customers", "type": "part-of" },
+    { "fromRef": "src:col-customer-id", "toRef": "src:ds-customers", "type": "part-of" },
+    { "fromRef": "src:col-invoice-customer", "toRef": "src:ds-invoices", "type": "part-of" },
+    { "fromRef": "src:col-invoice-customer", "toRef": "src:col-customer-id", "type": "joins-on" }
+  ]
+}
