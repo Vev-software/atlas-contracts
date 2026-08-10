@@ -127,3 +127,88 @@ export interface ImportBundle {
   assets: ImportAsset[];
   relationships?: ImportRelationship[];
 }
+
+// --- Discovery ingestion (the wire format a scanner emits into Atlas) ---
+//
+// Facts only: an Observation has no Atlas `id` and no `lifecycle` (the private Atlas
+// Enterprise reconciliation engine assigns those), and never any analysis. This contract is
+// open so third parties can build scanners; the reconciliation logic that consumes it is the
+// private moat and is NOT part of this repo. See handbook 11 §3, 12 §Phase A.
+
+/** How a discovery observation batch was collected. */
+export type CollectionMethod = "agent" | "agentless";
+
+/** Transport protocol of an observed port. */
+export type PortProtocol = "tcp" | "udp";
+
+/**
+ * Which scanner produced a batch. The authoritative tenant binding is the authenticated
+ * machine-principal at ingestion (a Fabric concern); `tenantRef` is an optional hint only.
+ */
+export interface ObservationSource {
+  agentId: string;
+  method: CollectionMethod;
+  version?: string | null;
+  tenantRef?: string | null;
+}
+
+/**
+ * One durable correlation attribute: a key and its observed value (both required — unlike a
+ * `Tag`, a fingerprint carries no valueless keys).
+ */
+export interface FingerprintAttribute {
+  key: string;
+  value: string;
+}
+
+/** An observed listening port. A recorded fact, not a measured integration. */
+export interface ObservedPort {
+  port: number;
+  protocol?: PortProtocol | null;
+  address?: string | null;
+}
+
+/** An observed running process or service. A recorded fact. */
+export interface ObservedProcess {
+  name: string;
+  port?: number | null;
+}
+
+/** An observed installed runtime or package. A recorded fact, not an EOL/risk assessment. */
+export interface ObservedPackage {
+  name: string;
+  version?: string | null;
+}
+
+/**
+ * A single raw sighting in the landscape. Facts only: no Atlas `id` and no `lifecycle` (the
+ * private reconciler assigns catalogue identity and state). Kind-specific held facts reuse the
+ * catalogue vocabulary; ports/processes/packages are extra observations, not catalogue analysis.
+ */
+export interface Observation {
+  observedId: string;
+  kind: AssetKind;
+  name: string;
+  fingerprint?: FingerprintAttribute[];
+  ports?: ObservedPort[];
+  processes?: ObservedProcess[];
+  packages?: ObservedPackage[];
+  tags?: Tag[];
+  firstSeen?: string | null;
+  lastSeen?: string | null;
+  application?: ApplicationDetails;
+  server?: ServerDetails;
+  infrastructure?: InfrastructureDetails;
+}
+
+/**
+ * The public wire format a discovery scanner emits into Atlas: a batch of raw observations that
+ * the private Atlas Enterprise reconciliation engine turns into catalogue assets.
+ */
+export interface DiscoveryObservationBatch {
+  contractVersion: typeof CONTRACT_VERSION;
+  kind: "discovery-observation";
+  source: ObservationSource;
+  observedAt: string;
+  observations: Observation[];
+}
