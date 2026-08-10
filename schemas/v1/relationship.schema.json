@@ -12,8 +12,8 @@
     "toId": { "$ref": "common.schema.json#/$defs/AssetId" },
     "type": {
       "type": "string",
-      "description": "The manual relationship vocabulary. Open set of held link types; adding a value is non-breaking.",
-      "enum": ["runs-on", "hosts", "connects-to", "depends-on", "part-of"]
+      "description": "The manual relationship vocabulary. Open set of held link types; adding a value is non-breaking. 'part-of' also carries data-layer containment (column → dataset → data-area → system); 'joins-on' is a held cross-dataset join key (nøgle) between columns/datasets, not a measured/derived join.",
+      "enum": ["runs-on", "hosts", "connects-to", "depends-on", "part-of", "joins-on"]
     },
     "description": {
       "type": ["string", "null"],

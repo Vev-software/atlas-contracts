@@ -1,0 +1,87 @@
+{
+  "contractVersion": "1",
+  "exportedAt": "2026-08-10T09:00:00Z",
+  "generator": { "name": "Atlas Community", "version": "0.1.0" },
+  "assets": [
+    {
+      "id": "sys-crm",
+      "kind": "system",
+      "name": "CRM platform",
+      "lifecycle": "active",
+      "tags": [{ "key": "domain", "value": "sales" }]
+    },
+    {
+      "id": "da-customers",
+      "kind": "data-area",
+      "name": "Customer master data",
+      "lifecycle": "active",
+      "dataArea": { "realisation": "microservice" }
+    },
+    {
+      "id": "ds-customers",
+      "kind": "dataset",
+      "name": "Customers",
+      "lifecycle": "active",
+      "dataset": { "physicalName": "dbo.customers", "owner": "CRM team" }
+    },
+    {
+      "id": "col-customer-id",
+      "kind": "column",
+      "name": "customer_id",
+      "lifecycle": "active",
+      "column": { "dataType": "uuid", "nullable": false }
+    },
+    {
+      "id": "col-customer-name",
+      "kind": "column",
+      "name": "customer_name",
+      "lifecycle": "active",
+      "column": { "dataType": "varchar(200)", "nullable": true }
+    },
+    {
+      "id": "sys-payments",
+      "kind": "system",
+      "name": "Payments platform",
+      "lifecycle": "active"
+    },
+    {
+      "id": "da-billing",
+      "kind": "data-area",
+      "name": "Billing",
+      "lifecycle": "active",
+      "dataArea": { "realisation": "reference-catalogue" }
+    },
+    {
+      "id": "ds-invoices",
+      "kind": "dataset",
+      "name": "Invoices",
+      "lifecycle": "active",
+      "dataset": { "physicalName": "dbo.invoices", "owner": "Finance team" }
+    },
+    {
+      "id": "col-invoice-id",
+      "kind": "column",
+      "name": "invoice_id",
+      "lifecycle": "active",
+      "column": { "dataType": "uuid", "nullable": false }
+    },
+    {
+      "id": "col-invoice-customer",
+      "kind": "column",
+      "name": "customer_id",
+      "lifecycle": "active",
+      "column": { "dataType": "uuid", "nullable": false }
+    }
+  ],
+  "relationships": [
+    { "id": "c1", "fromId": "da-customers", "toId": "sys-crm", "type": "part-of" },
+    { "id": "c2", "fromId": "ds-customers", "toId": "da-customers", "type": "part-of" },
+    { "id": "c3", "fromId": "col-customer-id", "toId": "ds-customers", "type": "part-of" },
+    { "id": "c4", "fromId": "col-customer-name", "toId": "ds-customers", "type": "part-of" },
+    { "id": "c5", "fromId": "da-billing", "toId": "sys-payments", "type": "part-of" },
+    { "id": "c6", "fromId": "ds-invoices", "toId": "da-billing", "type": "part-of" },
+    { "id": "c7", "fromId": "col-invoice-id", "toId": "ds-invoices", "type": "part-of" },
+    { "id": "c8", "fromId": "col-invoice-customer", "toId": "ds-invoices", "type": "part-of" },
+    { "id": "k1", "fromId": "col-invoice-customer", "toId": "col-customer-id", "type": "joins-on", "description": "Invoice.customer_id references Customers.customer_id" }
+  ]
+}

@@ -49,6 +49,30 @@
           "infrastructure": { "$ref": "common.schema.json#/$defs/InfrastructureDetails" }
         }
       }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "data-area" } } },
+      "then": {
+        "properties": {
+          "dataArea": { "$ref": "common.schema.json#/$defs/DataAreaDetails" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "dataset" } } },
+      "then": {
+        "properties": {
+          "dataset": { "$ref": "common.schema.json#/$defs/DatasetDetails" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "column" } } },
+      "then": {
+        "properties": {
+          "column": { "$ref": "common.schema.json#/$defs/ColumnDetails" }
+        }
+      }
     }
   ]
 }
