@@ -28,7 +28,9 @@ published to nuget.org / npm. Follow the epic and the open work in
     the `joins-on` key),
   - the **import/export document schemas** that carry a whole landscape across a
     boundary (customer-owned data export; community importers/exporters such as
-    ArchiMate/BPMN),
+    ArchiMate/BPMN), and the **portable bundle** that layers hosted ↔ self-hosted
+    migration metadata (workspace, diagrams, attachment manifest, module data,
+    restore hints) on top of the export,
   - the **discovery ingestion contract** ([`docs/discovery.md`](docs/discovery.md)) —
     the wire format a scanner emits into Atlas, so third parties can build scanners while
     the private reconciliation engine stays out of this repo,
@@ -80,11 +82,15 @@ and validates its exports against the same schemas.
 
 ## Portability (import & export)
 
-The catalogue moves across a boundary through two documents: a **landscape** export
-(the customer-owned data-export promise) and an **import bundle** (third-party interop,
-with `externalId` reference resolution and a merge/replace mode). Both carry catalogue
-data only — no paid-core analysis. See [`docs/portability.md`](docs/portability.md) for
-the document shapes, reference resolution, and the versioning/compatibility policy.
+The catalogue moves across a boundary through three documents: a **landscape** export
+(the customer-owned data-export promise), an **import bundle** (third-party interop,
+with `externalId` reference resolution and a merge/replace mode), and the **portable
+bundle** (`AtlasBundle`) that packages the export plus hosted ↔ self-hosted migration
+metadata — workspace, diagrams, an attachment manifest, public module data and restore
+hints — as one self-contained, versioned document. All carry Atlas domain data only —
+no paid-core analysis, no secrets, no entitlement/billing state. See
+[`docs/portability.md`](docs/portability.md) for the document shapes, reference
+resolution, and the versioning/compatibility policy.
 
 ## Contributing
 

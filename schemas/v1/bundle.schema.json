@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/bundle.schema.json",
+  "title": "Portable Atlas bundle (v1)",
+  "description": "The public, versioned portable Atlas bundle: a self-contained migration package layered ON TOP of the landscape export (landscape.schema.json). It carries the resolved landscape plus the additional Atlas-domain metadata a hosted <-> self-hosted move needs — workspace metadata, diagrams, an attachment manifest, public module/extension data and restore hints — without becoming a private hosted-only escape hatch. It carries Atlas domain data and migration metadata only: NEVER entitlement/subscription/billing state, live identity credentials or raw secret values (those are Fabric/control-plane concerns or are represented as references/rebind instructions). See handbook 11 §3, 11 §7, 12 §Phase C and ADR 0003.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "kind", "manifest", "landscape"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this bundle conforms to.",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Discriminates a portable bundle from the import/export/discovery documents.",
+      "const": "atlas-bundle"
+    },
+    "createdAt": {
+      "type": ["string", "null"],
+      "description": "When the bundle was produced, if known.",
+      "format": "date-time"
+    },
+    "generator": {
+      "description": "Optional provenance: what produced this bundle.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "common.schema.json#/$defs/Generator" }
+      ]
+    },
+    "compatibility": {
+      "description": "Producer-declared compatibility so a reader can decide, before importing, whether it can safely consume the bundle.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/BundleCompatibility" }
+      ]
+    },
+    "manifest": {
+      "description": "Machine-checkable inventory of what the bundle carries, so a reader can verify completeness before importing. The counts must match the actual section sizes — a bundle-level rule the conformance kit checks.",
+      "$ref": "#/$defs/BundleManifest"
+    },
+    "landscape": {
+      "description": "The resolved landscape core: assets and manual relationships, exactly as the export contract defines them. Every reference elsewhere in the bundle points at ids in here.",
+      "$ref": "landscape.schema.json"
+    },
+    "workspace": {
+      "description": "Held, portable workspace metadata (display identity only — never tenant shell, subscription or entitlement state).",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/WorkspaceMetadata" }
+      ]
+    },
+    "diagrams": {
+      "type": "array",
+      "description": "Portable Atlas diagrams: held layouts over the landscape, referencing asset and relationship ids present in it.",
+      "items": { "$ref": "#/$defs/Diagram" },
+      "default": []
+    },
+    "attachments": {
+      "type": "array",
+      "description": "Attachment MANIFEST: references to binary attachments with integrity digests, never inline secret bytes. The bytes themselves travel out of band; this lists what belongs to the bundle and how to verify it.",
+      "items": { "$ref": "#/$defs/AttachmentManifestEntry" },
+      "default": []
+    },
+    "modules": {
+      "type": "array",
+      "description": "Public module / extension data sections. Each carries a public module id and the version of that module's OWN public data contract; the payload is governed by that module contract, not this one.",
+      "items": { "$ref": "#/$defs/ModuleData" },
+      "default": []
+    },
+    "restore": {
+      "description": "Restore HINTS for reconstructing the workspace at the destination: identity-mapping placeholders and secret-rebind instructions. Instructions and references only — never password/session material or secret values.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/RestoreHints" }
+      ]
+    },
+    "excluded": {
+      "type": "array",
+      "description": "The non-portable categories the producer asserts it deliberately left out. Makes the exclusions machine-visible so a reader knows the bundle is complete-by-design, not truncated. The schema also structurally forbids carrying these (additionalProperties: false everywhere).",
+      "items": { "$ref": "#/$defs/ExcludedCategory" },
+      "uniqueItems": true,
+      "default": []
+    }
+  },
+  "$defs": {
+    "BundleCompatibility": {
+      "type": "object",
+      "description": "Producer-declared compatibility floor and provenance. Additive changes keep a bundle readable by older readers within the same contract major; breaking changes raise the contract major (schemas/v2) with an ADR and migration.",
+      "additionalProperties": false,
+      "required": ["minReaderContractVersion"],
+      "properties": {
+        "minReaderContractVersion": {
+          "type": "string",
+          "description": "The minimum atlas-contracts schema major version a reader must implement to safely import this bundle. For v1 this is '1'; a reader on an older major must refuse rather than silently drop data.",
+          "const": "1"
+        },
+        "producerAtlasVersion": {
+          "type": ["string", "null"],
+          "description": "The version of the Atlas runtime that produced the bundle, if known. A hint for the destination, not a gate.",
+          "maxLength": 64
+        },
+        "requiredModules": {
+          "type": "array",
+          "description": "Public module ids (and minimum versions) the destination must have available to fully restore the module sections. A reader missing one can still import the landscape core.",
+          "items": { "$ref": "#/$defs/ModuleRequirement" },
+          "default": []
+        }
+      }
+    },
+    "ModuleRequirement": {
+      "type": "object",
+      "description": "A public module the destination should have to consume a module data section.",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ModuleId" },
+        "minVersion": {
+          "type": ["string", "null"],
+          "description": "The minimum public data-contract version of the module the destination needs.",
+          "maxLength": 64
+        }
+      }
+    },
+    "BundleManifest": {
+      "type": "object",
+      "description": "Inventory of the bundle's sections. Counts must equal the actual array sizes; the SDK exposes the check and the conformance kit enforces it.",
+      "additionalProperties": false,
+      "required": ["landscape"],
+      "properties": {
+        "landscape": {
+          "type": "object",
+          "description": "Counts for the embedded landscape core.",
+          "additionalProperties": false,
+          "required": ["assetCount", "relationshipCount"],
+          "properties": {
+            "assetCount": { "type": "integer", "minimum": 0 },
+            "relationshipCount": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "diagramCount": { "type": "integer", "minimum": 0, "default": 0 },
+        "attachmentCount": { "type": "integer", "minimum": 0, "default": 0 },
+        "moduleCount": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "WorkspaceMetadata": {
+      "type": "object",
+      "description": "Portable workspace display metadata. Cataloguing/presentation only: NO tenant shell, subscription, entitlement, trial or billing state (Fabric/control-plane, recreated or remapped at the destination).",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "slug": {
+          "type": ["string", "null"],
+          "description": "A stable, URL-safe short name, if the workspace has one.",
+          "maxLength": 128,
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "description": { "type": ["string", "null"], "maxLength": 4096 },
+        "locale": {
+          "type": ["string", "null"],
+          "description": "Preferred display locale (BCP-47 tag, e.g. 'da-DK'). Presentation preference, not policy.",
+          "maxLength": 35
+        },
+        "timeZone": {
+          "type": ["string", "null"],
+          "description": "Preferred display time zone (IANA tz id, e.g. 'Europe/Copenhagen').",
+          "maxLength": 64
+        },
+        "tags": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/Tag" },
+          "default": []
+        }
+      }
+    },
+    "Diagram": {
+      "type": "object",
+      "description": "A portable diagram: a held visual layout over the landscape. Node placements reference asset ids and edges reference relationship ids that MUST be present in the embedded landscape (a bundle-level rule the conformance kit checks). A rendered image, if any, is carried as an attachment, not inline.",
+      "additionalProperties": false,
+      "required": ["id", "name", "format"],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/AssetId",
+          "description": "Stable diagram identifier, unique within the bundle."
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "description": { "type": ["string", "null"], "maxLength": 4096 },
+        "format": {
+          "type": "string",
+          "description": "The layout format. 'atlas-layout' is the held node/edge placement below; other public formats may be added additively.",
+          "enum": ["atlas-layout"]
+        },
+        "nodes": {
+          "type": "array",
+          "description": "Placed assets. Each 'ref' matches an asset 'id' in the embedded landscape.",
+          "items": { "$ref": "#/$defs/DiagramNode" },
+          "default": []
+        },
+        "edges": {
+          "type": "array",
+          "description": "Drawn relationships. Each 'ref' matches a relationship 'id' in the embedded landscape.",
+          "items": { "$ref": "#/$defs/DiagramEdge" },
+          "default": []
+        },
+        "renderRef": {
+          "type": ["string", "null"],
+          "description": "Optional attachment id (an entry in 'attachments') of a rendered image of this diagram.",
+          "maxLength": 128
+        }
+      }
+    },
+    "DiagramNode": {
+      "type": "object",
+      "description": "A placed asset in a diagram. Position is a held layout fact, not analysis.",
+      "additionalProperties": false,
+      "required": ["ref", "x", "y"],
+      "properties": {
+        "ref": {
+          "$ref": "common.schema.json#/$defs/AssetId",
+          "description": "The asset id this node draws, present in the embedded landscape."
+        },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "label": { "type": ["string", "null"], "maxLength": 256 }
+      }
+    },
+    "DiagramEdge": {
+      "type": "object",
+      "description": "A drawn relationship in a diagram.",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": {
+          "$ref": "common.schema.json#/$defs/AssetId",
+          "description": "The relationship id this edge draws, present in the embedded landscape."
+        }
+      }
+    },
+    "AttachmentManifestEntry": {
+      "type": "object",
+      "description": "One attachment listed by reference and integrity digest — never inline secret bytes. The bytes travel out of band (an external store, or a sidecar in the transport container); this entry lets the destination locate and verify them.",
+      "additionalProperties": false,
+      "required": ["id", "name", "mediaType", "byteSize", "digest"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable attachment identifier, unique within the bundle. Referenced by diagrams' 'renderRef' and by 'attachedToRef'.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "description": "The attachment's file name.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "mediaType": {
+          "type": "string",
+          "description": "IANA media type, e.g. 'image/png' or 'application/pdf'.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "byteSize": {
+          "type": "integer",
+          "description": "Size of the attachment in bytes.",
+          "minimum": 0
+        },
+        "digest": {
+          "description": "Content digest so the destination can verify the out-of-band bytes.",
+          "$ref": "#/$defs/Digest"
+        },
+        "attachedToRef": {
+          "type": ["string", "null"],
+          "description": "Optional id of the asset, relationship or diagram this attachment belongs to. When set, it must resolve within the bundle.",
+          "maxLength": 128
+        }
+      }
+    },
+    "Digest": {
+      "type": "object",
+      "description": "A content digest. SHA-256 is the required baseline; other algorithms may be added additively.",
+      "additionalProperties": false,
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": ["sha-256"]
+        },
+        "value": {
+          "type": "string",
+          "description": "Lower-case hex digest.",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "ModuleData": {
+      "type": "object",
+      "description": "A public module / extension data section. The bundle contract fixes only the envelope (which module, which of ITS contract versions); the payload shape is governed by that module's own public contract and is therefore opaque here. A module must never use this section to smuggle secrets or entitlement state — the same exclusions apply.",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "#/$defs/ModuleId" },
+        "version": {
+          "type": "string",
+          "description": "The version of the module's OWN public data contract that governs 'data'.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "itemCount": {
+          "type": ["integer", "null"],
+          "description": "Optional count of items in 'data', for manifest-style verification by the module's reader.",
+          "minimum": 0
+        },
+        "data": {
+          "type": "object",
+          "description": "The module's portable payload, governed by the module's own public contract (referenced by 'id'+'version'). Opaque to this contract."
+        }
+      }
+    },
+    "ModuleId": {
+      "type": "string",
+      "description": "A public module / extension identifier, e.g. 'atlas.diagramming' or a third-party reverse-DNS id.",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "RestoreHints": {
+      "type": "object",
+      "description": "Non-data instructions for reconstructing the workspace at the destination. Placeholders and instructions only: identity is rebound to the destination IdP, and secrets are rebound at the destination — this section NEVER carries password/session material or secret values.",
+      "additionalProperties": false,
+      "properties": {
+        "identityMappings": {
+          "type": "array",
+          "description": "Placeholders mapping a source principal reference to a destination-binding hint. No credentials — the destination binds identities to its own IdP.",
+          "items": { "$ref": "#/$defs/IdentityMapping" },
+          "default": []
+        },
+        "secretRebinds": {
+          "type": "array",
+          "description": "Instructions for rebinding a secret at the destination, keyed by an opaque reference. No secret values.",
+          "items": { "$ref": "#/$defs/SecretRebind" },
+          "default": []
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Free-text operator notes for the restore.",
+          "maxLength": 4096
+        }
+      }
+    },
+    "IdentityMapping": {
+      "type": "object",
+      "description": "One identity-mapping placeholder. Carries references and hints, never credentials.",
+      "additionalProperties": false,
+      "required": ["sourceRef"],
+      "properties": {
+        "sourceRef": {
+          "type": "string",
+          "description": "An opaque reference to the source principal (e.g. a stable user key). Not an email, not a credential.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": ["string", "null"],
+          "description": "Optional display name to help an operator match the principal at the destination.",
+          "maxLength": 256
+        },
+        "bindHint": {
+          "type": ["string", "null"],
+          "description": "Optional hint for binding at the destination (e.g. 'match by corporate directory group X').",
+          "maxLength": 512
+        }
+      }
+    },
+    "SecretRebind": {
+      "type": "object",
+      "description": "One secret-rebind instruction. Names WHAT must be re-provided at the destination, never the value.",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "An opaque reference to the secret in the source (e.g. a key-vault path or logical name). Not the secret itself.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "instruction": {
+          "type": ["string", "null"],
+          "description": "How to re-provide the secret at the destination.",
+          "maxLength": 1024
+        }
+      }
+    },
+    "ExcludedCategory": {
+      "type": "string",
+      "description": "A category of state that is deliberately NOT portable through the bundle.",
+      "enum": [
+        "secrets",
+        "live-credentials",
+        "entitlements",
+        "subscription",
+        "billing",
+        "audit-logs",
+        "telemetry"
+      ]
+    }
+  }
+}
