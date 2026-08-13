@@ -1,6 +1,7 @@
 # Code owners for atlas-contracts.
 #
-# Every change to this public contract repo requires review from the Atlas
-# maintainers before it can land on a protected branch (handbook 02 §8).
-# The contract surface is intentionally small and reviewed as a whole.
-* @Vev-software/atlas-maintainers
+# Every change to this public contract repo requires review from the founders
+# team before it can land on a protected branch (handbook 02 §8). The contract
+# surface is intentionally small and reviewed as a whole. (When a dedicated
+# atlas-maintainers team exists, repoint this to it.)
+* @Vev-software/founders
