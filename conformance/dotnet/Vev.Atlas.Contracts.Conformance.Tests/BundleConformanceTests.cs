@@ -23,7 +23,7 @@ public sealed class BundleConformanceTests
     private const string SampleDigest = "0b0b242f42d62b4e8980598044ad042e914476ae55872619bec89aadff32fd17";
 
     private static EvaluationResults Evaluate(JsonNode? instance) =>
-        BundleSchema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        JsonSchemaTestHelpers.Evaluate(BundleSchema, instance);
 
     private static AtlasBundle BuildSdkBundle()
     {
@@ -198,11 +198,5 @@ public sealed class BundleConformanceTests
         Assert.Equal("does-not-exist", Assert.Single(bundle.UnresolvedReferences()));
     }
 
-    private static string Describe(EvaluationResults results)
-    {
-        var errors = results.Details
-            .Where(d => d.HasErrors)
-            .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key} — {e.Value}"));
-        return "Schema validation failed:\n" + string.Join('\n', errors);
-    }
+    private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
 }

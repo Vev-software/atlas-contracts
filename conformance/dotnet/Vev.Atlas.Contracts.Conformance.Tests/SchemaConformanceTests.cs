@@ -17,7 +17,7 @@ public sealed class SchemaConformanceTests
     private static readonly JsonSchema LandscapeSchema = TestSchemas.Load("landscape.schema.json");
 
     private static EvaluationResults Evaluate(JsonNode? instance) =>
-        LandscapeSchema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        JsonSchemaTestHelpers.Evaluate(LandscapeSchema, instance);
 
     [Fact]
     public void Sample_landscape_document_conforms_to_the_published_schema()
@@ -86,11 +86,5 @@ public sealed class SchemaConformanceTests
         Assert.False(results.IsValid);
     }
 
-    private static string Describe(EvaluationResults results)
-    {
-        var errors = results.Details
-            .Where(d => d.HasErrors)
-            .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key} — {e.Value}"));
-        return "Schema validation failed:\n" + string.Join('\n', errors);
-    }
+    private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
 }

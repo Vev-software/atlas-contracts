@@ -20,7 +20,7 @@ public sealed class DiscoveryObservationConformanceTests
     private static readonly JsonSchema DiscoverySchema = TestSchemas.Load("discovery-observation.schema.json");
 
     private static EvaluationResults Evaluate(JsonNode? instance) =>
-        DiscoverySchema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        JsonSchemaTestHelpers.Evaluate(DiscoverySchema, instance);
 
     private static DiscoveryObservationBatch SampleBatch() => new(
         Source: new ObservationSource("agent-eu-north-1-01", CollectionMethod.Agent, Version: "0.1.0"),
@@ -142,11 +142,5 @@ public sealed class DiscoveryObservationConformanceTests
           "observedAt": "2026-08-10T07:30:00Z", "observations": [ {{observationJson}} ] }
         """);
 
-    private static string Describe(EvaluationResults results)
-    {
-        var errors = results.Details
-            .Where(d => d.HasErrors)
-            .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key} — {e.Value}"));
-        return "Schema validation failed:\n" + string.Join('\n', errors);
-    }
+    private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
 }

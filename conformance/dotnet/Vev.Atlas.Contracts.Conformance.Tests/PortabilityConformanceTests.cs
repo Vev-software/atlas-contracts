@@ -20,7 +20,7 @@ public sealed class PortabilityConformanceTests
     private static readonly JsonSchema LandscapeSchema = TestSchemas.Load("landscape.schema.json");
 
     private static EvaluationResults Evaluate(JsonSchema schema, JsonNode? instance) =>
-        schema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        JsonSchemaTestHelpers.Evaluate(schema, instance);
 
     // ---- export (landscape) ----
 
@@ -132,11 +132,5 @@ public sealed class PortabilityConformanceTests
         Assert.Equal("does-not-exist", Assert.Single(bundle.UnresolvedReferences()));
     }
 
-    private static string Describe(EvaluationResults results)
-    {
-        var errors = results.Details
-            .Where(d => d.HasErrors)
-            .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key} — {e.Value}"));
-        return "Schema validation failed:\n" + string.Join('\n', errors);
-    }
+    private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
 }

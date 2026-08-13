@@ -22,7 +22,7 @@ public sealed class DataLayerConformanceTests
     private static readonly JsonSchema ImportSchema = TestSchemas.Load("import.schema.json");
 
     private static EvaluationResults Evaluate(JsonSchema schema, JsonNode? instance) =>
-        schema.Evaluate(instance, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        JsonSchemaTestHelpers.Evaluate(schema, instance);
 
     /// <summary>A well-formed data layer built with the SDK: two systems, each with a data-area →
     /// dataset → columns, and a cross-dataset 'joins-on' key.</summary>
@@ -248,11 +248,5 @@ public sealed class DataLayerConformanceTests
         Assert.Empty(roundTripped!.UnresolvedReferences());
     }
 
-    private static string Describe(EvaluationResults results)
-    {
-        var errors = results.Details
-            .Where(d => d.HasErrors)
-            .SelectMany(d => d.Errors!.Select(e => $"{d.InstanceLocation}: {e.Key} — {e.Value}"));
-        return "Schema validation failed:\n" + string.Join('\n', errors);
-    }
+    private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
 }
