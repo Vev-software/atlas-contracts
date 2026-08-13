@@ -54,6 +54,24 @@ jobs:
           npm install
           npm run build
 
+      # The npm package must ship the schemas (like the NuGet package does). The
+      # prepack step copies schemas/v1 in; prove the tarball actually carries them.
+      - name: Verify TypeScript SDK ships the schemas
+        working-directory: sdk/typescript
+        run: |
+          npm pack --dry-run --json 2>/dev/null | node -e "
+            let s = '';
+            process.stdin.on('data', (d) => (s += d)).on('end', () => {
+              const files = JSON.parse(s)[0].files.map((f) => f.path);
+              const schemas = files.filter((p) => p.startsWith('schemas/v1/'));
+              if (schemas.length === 0) {
+                console.error('npm package is missing schemas/ — check scripts/prepack.mjs');
+                process.exit(1);
+              }
+              console.log('npm package ships ' + schemas.length + ' schema files.');
+            });
+          "
+
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:

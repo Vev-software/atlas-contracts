@@ -431,3 +431,5 @@ FodyWeavers.xsd
 # TypeScript SDK build output
 sdk/typescript/dist/
 sdk/typescript/node_modules/
+# Schemas are copied in at pack time by scripts/prepack.mjs (see package.json "files").
+sdk/typescript/schemas/

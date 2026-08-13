@@ -1,0 +1,67 @@
+# Cuts a signed, immutable release when a version tag is pushed. Builds and tests
+# from public feeds only (the same gate as ci.yml), packs both SDKs, attaches a
+# Sigstore build-provenance attestation to each artifact, and publishes a GitHub
+# Release with the versioned artifacts. It does NOT push to nuget.org / npm — that
+# is a separate, gated publish step (see atlas-contracts#6).
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+# Read-only by default; the release job elevates only what it needs.
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: signed release
+    # Never run from a fork: releases and provenance must come from the canonical repo.
+    if: github.repository == 'Vev-software/atlas-contracts'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub Release
+      id-token: write # keyless Sigstore signing for the attestation
+      attestations: write # record the build-provenance attestation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET (pinned by global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Public feeds only, and the full conformance gate — a release must pass CI.
+      - name: Build + test (public feeds only)
+        run: |
+          dotnet restore AtlasContracts.slnx
+          dotnet build AtlasContracts.slnx -c Release --no-restore
+          dotnet test AtlasContracts.slnx -c Release --no-build
+
+      - name: Pack .NET SDK
+        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release --no-build -o artifacts
+
+      # `npm pack` runs prepack, so the tarball ships the schemas.
+      - name: Pack TypeScript SDK
+        working-directory: sdk/typescript
+        run: |
+          npm install
+          npm run build
+          npm pack --pack-destination ../../artifacts
+
+      # Sigstore keyless provenance for every release artifact.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "artifacts/*"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" artifacts/* --verify-tag --generate-notes

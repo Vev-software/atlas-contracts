@@ -1,0 +1,33 @@
+# Keep dependencies current across the three ecosystems this repo uses. Grouped,
+# weekly updates so the public-feed-clean build (see ci.yml) stays green.
+version: 2
+updates:
+  # .NET: central package versions live in Directory.Packages.props at the root.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      dotnet:
+        patterns: ["*"]
+
+  # TypeScript SDK.
+  - package-ecosystem: "npm"
+    directory: "/sdk/typescript"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      typescript:
+        patterns: ["*"]
+
+  # The GitHub Actions used by ci.yml and release.yml.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]
