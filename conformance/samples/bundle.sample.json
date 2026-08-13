@@ -1,0 +1,116 @@
+{
+  "contractVersion": "1",
+  "kind": "atlas-bundle",
+  "createdAt": "2026-08-13T10:00:00Z",
+  "generator": { "name": "Atlas Community", "version": "0.1.0" },
+  "compatibility": {
+    "minReaderContractVersion": "1",
+    "producerAtlasVersion": "2026.8.0",
+    "requiredModules": [
+      { "id": "atlas.diagramming", "minVersion": "1" }
+    ]
+  },
+  "manifest": {
+    "landscape": { "assetCount": 4, "relationshipCount": 3 },
+    "diagramCount": 1,
+    "attachmentCount": 1,
+    "moduleCount": 1
+  },
+  "landscape": {
+    "contractVersion": "1",
+    "exportedAt": "2026-08-13T09:59:00Z",
+    "generator": { "name": "Atlas Community", "version": "0.1.0" },
+    "assets": [
+      {
+        "id": "sys-payments",
+        "kind": "system",
+        "name": "Payments platform",
+        "lifecycle": "active",
+        "tags": [{ "key": "domain", "value": "finance" }]
+      },
+      {
+        "id": "app-checkout",
+        "kind": "application",
+        "name": "Checkout service",
+        "lifecycle": "active",
+        "description": "Customer-facing checkout API.",
+        "application": { "version": "4.2.1", "vendor": "in-house", "businessOwner": "Payments team" }
+      },
+      {
+        "id": "srv-checkout-01",
+        "kind": "server",
+        "name": "checkout-prod-01",
+        "lifecycle": "active",
+        "server": { "hostname": "checkout-prod-01.vev.internal", "environment": "production", "operatingSystem": "Ubuntu 24.04 LTS" }
+      },
+      {
+        "id": "infra-vpc-eu",
+        "kind": "infrastructure",
+        "name": "EU production VPC",
+        "lifecycle": "active",
+        "infrastructure": { "category": "network", "location": "eu-north-1" }
+      }
+    ],
+    "relationships": [
+      { "id": "rel-1", "fromId": "app-checkout", "toId": "srv-checkout-01", "type": "runs-on" },
+      { "id": "rel-2", "fromId": "app-checkout", "toId": "sys-payments", "type": "part-of" },
+      { "id": "rel-3", "fromId": "srv-checkout-01", "toId": "infra-vpc-eu", "type": "depends-on", "description": "Network dependency" }
+    ]
+  },
+  "workspace": {
+    "name": "Payments",
+    "slug": "payments",
+    "description": "Payments platform workspace.",
+    "locale": "da-DK",
+    "timeZone": "Europe/Copenhagen",
+    "tags": [{ "key": "environment", "value": "production" }]
+  },
+  "diagrams": [
+    {
+      "id": "dg-overview",
+      "name": "Checkout overview",
+      "format": "atlas-layout",
+      "description": "How checkout runs on the payments platform.",
+      "nodes": [
+        { "ref": "sys-payments", "x": 0, "y": 0 },
+        { "ref": "app-checkout", "x": 200, "y": 0, "label": "Checkout" },
+        { "ref": "srv-checkout-01", "x": 200, "y": 160 },
+        { "ref": "infra-vpc-eu", "x": 200, "y": 320 }
+      ],
+      "edges": [
+        { "ref": "rel-1" },
+        { "ref": "rel-2" },
+        { "ref": "rel-3" }
+      ],
+      "renderRef": "att-overview-png"
+    }
+  ],
+  "attachments": [
+    {
+      "id": "att-overview-png",
+      "name": "checkout-overview.png",
+      "mediaType": "image/png",
+      "byteSize": 20481,
+      "digest": { "algorithm": "sha-256", "value": "0b0b242f42d62b4e8980598044ad042e914476ae55872619bec89aadff32fd17" },
+      "attachedToRef": "dg-overview"
+    }
+  ],
+  "modules": [
+    {
+      "id": "atlas.diagramming",
+      "version": "1",
+      "itemCount": 1,
+      "data": { "theme": "default", "layouts": ["dg-overview"] }
+    }
+  ],
+  "restore": {
+    "identityMappings": [
+      { "sourceRef": "user:42", "displayName": "Jane Doe", "bindHint": "match by corporate directory group 'payments-admins'" }
+    ],
+    "secretRebinds": [
+      { "ref": "vault:payments/checkout-db", "instruction": "Re-provide the checkout database password at the destination secret store." }
+    ],
+    "notes": "Rebind the payments DB secret before enabling the checkout module."
+  },
+  "excluded": ["secrets", "live-credentials", "entitlements", "subscription", "billing", "audit-logs", "telemetry"]
+}

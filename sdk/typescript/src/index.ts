@@ -252,3 +252,171 @@ export interface DiscoveryObservationBatch {
   observedAt: string;
   observations: Observation[];
 }
+
+// --- Portable Atlas bundle (the hosted <-> self-hosted migration package) ---
+//
+// A self-contained package layered ON TOP of the landscape export: the resolved landscape plus the
+// Atlas-domain metadata a move needs (workspace metadata, diagrams, an attachment manifest, public
+// module data, restore hints). It carries Atlas domain data and migration metadata only — never
+// entitlement/subscription/billing state, live identity credentials or raw secret values. See
+// handbook 11 §3, 11 §7, 12 §Phase C, ADR 0003. Mirrors `schemas/v1/bundle.schema.json`.
+
+/** The layout format of a `Diagram`. */
+export type DiagramFormat = "atlas-layout";
+
+/** The digest algorithm of a `Digest`. */
+export type DigestAlgorithm = "sha-256";
+
+/** A category of state deliberately NOT portable through the bundle. */
+export type ExcludedCategory =
+  | "secrets"
+  | "live-credentials"
+  | "entitlements"
+  | "subscription"
+  | "billing"
+  | "audit-logs"
+  | "telemetry";
+
+/** Counts for the embedded landscape core. */
+export interface LandscapeCounts {
+  assetCount: number;
+  relationshipCount: number;
+}
+
+/** Machine-checkable inventory of what an `AtlasBundle` carries. Counts must match section sizes. */
+export interface BundleManifest {
+  landscape: LandscapeCounts;
+  diagramCount?: number;
+  attachmentCount?: number;
+  moduleCount?: number;
+}
+
+/** A public module the destination should have to consume a module data section. */
+export interface ModuleRequirement {
+  id: string;
+  minVersion?: string | null;
+}
+
+/** Producer-declared compatibility floor and provenance. */
+export interface BundleCompatibility {
+  /** Minimum atlas-contracts major a reader must implement to safely import. */
+  minReaderContractVersion: typeof CONTRACT_VERSION;
+  producerAtlasVersion?: string | null;
+  requiredModules?: ModuleRequirement[];
+}
+
+/**
+ * Portable workspace display metadata. Presentation only: never tenant shell, subscription,
+ * entitlement, trial or billing state (recreated or remapped at the destination).
+ */
+export interface WorkspaceMetadata {
+  name: string;
+  slug?: string | null;
+  description?: string | null;
+  locale?: string | null;
+  timeZone?: string | null;
+  tags?: Tag[];
+}
+
+/** A placed asset in a diagram. Position is a held layout fact, not analysis. */
+export interface DiagramNode {
+  ref: string;
+  x: number;
+  y: number;
+  label?: string | null;
+}
+
+/** A drawn relationship in a diagram. */
+export interface DiagramEdge {
+  ref: string;
+}
+
+/**
+ * A portable diagram: a held layout over the landscape. Node placements reference asset ids and
+ * edges reference relationship ids present in the embedded landscape; a rendered image, if any, is
+ * carried as an attachment via `renderRef`, not inline.
+ */
+export interface Diagram {
+  id: string;
+  name: string;
+  format: DiagramFormat;
+  description?: string | null;
+  nodes?: DiagramNode[];
+  edges?: DiagramEdge[];
+  renderRef?: string | null;
+}
+
+/** A content digest so the destination can verify out-of-band attachment bytes. */
+export interface Digest {
+  algorithm: DigestAlgorithm;
+  value: string;
+}
+
+/**
+ * One attachment listed by reference and integrity digest — never inline secret bytes. The bytes
+ * travel out of band; this entry lets the destination locate and verify them.
+ */
+export interface AttachmentManifestEntry {
+  id: string;
+  name: string;
+  mediaType: string;
+  byteSize: number;
+  digest: Digest;
+  attachedToRef?: string | null;
+}
+
+/**
+ * A public module / extension data section. The bundle contract fixes only the envelope (which
+ * module, which of its contract versions); `data` is governed by that module's own public contract
+ * and is opaque here. The same exclusions apply — no secrets or entitlement state.
+ */
+export interface ModuleData {
+  id: string;
+  version: string;
+  itemCount?: number | null;
+  data?: Record<string, unknown>;
+}
+
+/** One identity-mapping placeholder. Carries references and hints, never credentials. */
+export interface IdentityMapping {
+  sourceRef: string;
+  displayName?: string | null;
+  bindHint?: string | null;
+}
+
+/** One secret-rebind instruction. Names what must be re-provided, never the value. */
+export interface SecretRebind {
+  ref: string;
+  instruction?: string | null;
+}
+
+/**
+ * Non-data instructions for reconstructing the workspace at the destination. Placeholders and
+ * instructions only: never password/session material or secret values.
+ */
+export interface RestoreHints {
+  identityMappings?: IdentityMapping[];
+  secretRebinds?: SecretRebind[];
+  notes?: string | null;
+}
+
+/**
+ * The public, versioned portable Atlas bundle: a self-contained migration package layered on top of
+ * the landscape export (`LandscapeDocument`). Carries the resolved landscape plus the Atlas-domain
+ * metadata a hosted <-> self-hosted move needs, without becoming a private hosted-only escape hatch.
+ */
+export interface AtlasBundle {
+  contractVersion: typeof CONTRACT_VERSION;
+  kind: "atlas-bundle";
+  manifest: BundleManifest;
+  landscape: LandscapeDocument;
+  createdAt?: string | null;
+  generator?: Generator | null;
+  compatibility?: BundleCompatibility | null;
+  workspace?: WorkspaceMetadata | null;
+  diagrams?: Diagram[];
+  attachments?: AttachmentManifestEntry[];
+  modules?: ModuleData[];
+  restore?: RestoreHints | null;
+  excluded?: ExcludedCategory[];
+}
