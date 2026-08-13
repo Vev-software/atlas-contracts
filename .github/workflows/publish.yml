@@ -1,0 +1,97 @@
+# Publishes the SDK packages to the public registries. Manual only
+# (workflow_dispatch) and gated behind the `release` environment, so a publish
+# never happens by accident — you press the button, and the environment can add
+# required reviewers on top. Registry credentials are NOT in this repo; they are
+# supplied as the secrets named below (scope them to the `release` environment).
+#
+# Required secrets (Settings → Environments → release → Secrets):
+#   NUGET_API_KEY  — an api key from nuget.org with push rights for Vev.Atlas.Contracts
+#   NPM_TOKEN      — an npm automation token with publish rights for @vev-software/atlas-contracts
+#
+# Publishing is the last DoD item and is intentionally decoupled from release.yml
+# (which only builds, signs and attaches artifacts to a GitHub Release).
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_nuget:
+        description: "Publish Vev.Atlas.Contracts to nuget.org"
+        type: boolean
+        default: true
+      publish_npm:
+        description: "Publish @vev-software/atlas-contracts to npm"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish-nuget:
+    name: publish · nuget.org
+    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_nuget }}
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (pinned by global.json)
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # A release must pass the same public-feed-clean gate as CI before it ships.
+      - name: Build + test (public feeds only)
+        run: |
+          dotnet restore AtlasContracts.slnx
+          dotnet build AtlasContracts.slnx -c Release --no-restore
+          dotnet test AtlasContracts.slnx -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release --no-build -o artifacts
+
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::NUGET_API_KEY is not set on the 'release' environment."
+            exit 1
+          fi
+          dotnet nuget push "artifacts/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+  publish-npm:
+    name: publish · npm
+    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_npm }}
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Build
+        working-directory: sdk/typescript
+        run: |
+          npm install
+          npm run build
+
+      # `npm publish` runs prepack, so the published tarball ships the schemas.
+      - name: Publish to npm
+        working-directory: sdk/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN is not set on the 'release' environment."
+            exit 1
+          fi
+          npm publish --access public
