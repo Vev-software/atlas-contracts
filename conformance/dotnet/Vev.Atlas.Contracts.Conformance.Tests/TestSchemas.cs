@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Json.Schema;
 
 namespace Vev.Atlas.Contracts.Conformance.Tests;
@@ -11,6 +12,9 @@ namespace Vev.Atlas.Contracts.Conformance.Tests;
 internal static class TestSchemas
 {
     private static readonly object Gate = new();
+    private static readonly SchemaRegistry Registry = new();
+    private static readonly BuildOptions BuildOptions = new() { SchemaRegistry = Registry };
+    private static readonly Dictionary<string, Uri> SchemaIds = new(StringComparer.OrdinalIgnoreCase);
     private static bool _registered;
 
     private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas", "v1");
@@ -22,7 +26,7 @@ internal static class TestSchemas
     public static JsonSchema Load(string entry)
     {
         EnsureRegistered();
-        return JsonSchema.FromText(File.ReadAllText(Path.Combine(SchemaDir, entry)));
+        return (JsonSchema)Registry.Get(SchemaIds[entry])!;
     }
 
     private static void EnsureRegistered()
@@ -41,7 +45,12 @@ internal static class TestSchemas
 
             foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json"))
             {
-                SchemaRegistry.Global.Register(JsonSchema.FromText(File.ReadAllText(file)));
+                var content = File.ReadAllText(file);
+                using var document = JsonDocument.Parse(content);
+                var id = new Uri(document.RootElement.GetProperty("$id").GetString()!, UriKind.Absolute);
+
+                SchemaIds[Path.GetFileName(file)] = id;
+                JsonSchema.FromText(content, BuildOptions);
             }
 
             _registered = true;
