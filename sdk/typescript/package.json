@@ -12,7 +12,8 @@
     "url": "https://github.com/Vev-software/atlas-contracts"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "prepack": "node scripts/prepack.mjs"
   },
   "devDependencies": {
     "typescript": "^5.6.0"
