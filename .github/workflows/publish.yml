@@ -1,0 +1,114 @@
+# Publishes the SDK packages to the public registries. Manual only
+# (workflow_dispatch) and gated behind the `release` environment, so a publish
+# never happens by accident — you press the button, and the environment can add
+# required reviewers on top.
+#
+# Auth uses OIDC "Trusted Publishing" — NO long-lived API keys are stored in the
+# repo (nuget.org now discourages API keys for CI). At run time the workflow gets
+# a short-lived GitHub OIDC token, which the registry trusts because you
+# registered this repo + workflow as a trusted publisher on the registry side.
+#
+# One-time setup before the first publish (all on the REGISTRY, not on GitHub):
+#   nuget.org — Account → Trusted Publishing → Create a policy for:
+#       package owner = your nuget.org account/org
+#       repository owner = Vev-software, repository = atlas-contracts
+#       workflow file = publish.yml   (environment = release, optional)
+#     Docs: https://learn.microsoft.com/nuget/nuget-org/trusted-publishing
+#     Then set the repo variable NUGET_USER to your nuget.org username.
+#   npm — the package page → Settings → Trusted Publisher → GitHub Actions:
+#       org = Vev-software, repo = atlas-contracts, workflow = publish.yml,
+#       environment = release.
+#     NOTE: an npm trusted publisher attaches to an EXISTING package, so the very
+#     first npm publish needs a one-time manual `npm publish` (or a token) to
+#     create the package; every publish after that is fully tokenless.
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_nuget:
+        description: "Publish Vev.Atlas.Contracts to nuget.org"
+        type: boolean
+        default: true
+      publish_npm:
+        description: "Publish @vev-software/atlas-contracts to npm"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish-nuget:
+    name: publish · nuget.org
+    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_nuget }}
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # OIDC for NuGet Trusted Publishing — no API key
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (pinned by global.json)
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # A release must pass the same public-feed-clean gate as CI before it ships.
+      - name: Build + test (public feeds only)
+        run: |
+          dotnet restore AtlasContracts.slnx
+          dotnet build AtlasContracts.slnx -c Release --no-restore
+          dotnet test AtlasContracts.slnx -c Release --no-build
+
+      - name: Pack
+        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release --no-build -o artifacts
+
+      # Exchange the GitHub OIDC token for a short-lived nuget.org API key. Needs a
+      # trusted-publishing policy on nuget.org and the repo variable NUGET_USER.
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to nuget.org
+        run: |
+          dotnet nuget push "artifacts/*.nupkg" \
+            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+  publish-npm:
+    name: publish · npm
+    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_npm }}
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # OIDC for npm Trusted Publishing + build provenance
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted Publishing (tokenless OIDC) needs a recent npm (>= 11.5.1).
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Build
+        working-directory: sdk/typescript
+        run: |
+          npm install
+          npm run build
+
+      # No NODE_AUTH_TOKEN: OIDC Trusted Publishing supplies the credential and
+      # npm attaches a signed provenance statement automatically.
+      - name: Publish to npm (Trusted Publishing)
+        working-directory: sdk/typescript
+        run: npm publish --access public
