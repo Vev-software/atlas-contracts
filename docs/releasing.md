@@ -7,25 +7,41 @@ the public registries are distinct, gated steps.
 | Workflow | Trigger | What it does |
 |---|---|---|
 | [`release.yml`](../.github/workflows/release.yml) | push a `v*.*.*` tag | Builds + tests from public feeds, packs both SDKs, attaches a **Sigstore build-provenance** attestation, and creates a **GitHub Release** with the versioned artifacts. Does not touch the registries. |
-| [`publish.yml`](../.github/workflows/publish.yml) | manual (`workflow_dispatch`), gated by the `release` environment | Publishes `Vev.Atlas.Contracts` to **nuget.org** and `@vev-software/atlas-contracts` to **npm**. |
+| [`publish.yml`](../.github/workflows/publish.yml) | manual (`workflow_dispatch`) for a given `tag`, gated by the `release` environment | Publishes `Vev.Atlas.Contracts` to **nuget.org** and `@vev-software/atlas-contracts` to **npm**. |
 
-## Versioning
+## Versioning — the tag is the single source of truth
 
-The package version follows SemVer and is independent of the schema
-`contractVersion` (which is the `v1` contract major — see
+There is **no hand-maintained version number** in this repo. The git tag drives
+everything:
+
+- **.NET** — [MinVer](https://github.com/adamralph/minver) derives the package
+  version from the tag at build time (`MinVerTagPrefix` is `v`, so tag `vX.Y.Z` →
+  package `X.Y.Z`; commits after a tag produce a pre-release). Configured in
+  [`Directory.Build.props`](../Directory.Build.props).
+- **npm** — the workflows stamp `package.json` from the tag with
+  `npm version ${TAG#v}` at pack/publish time. The committed `version` is
+  `0.0.0` (a placeholder); CI overwrites it.
+
+So bumping a release is a **single action: create the tag**. Nothing else to edit,
+so the .NET and npm packages can never drift out of sync. Version follows SemVer and
+is independent of the schema `contractVersion` (the `v1` contract major — see
 [portability.md](portability.md) for the additive-vs-breaking policy). Breaking a
-published contract requires an ADR, a migration path and a deprecation period; a
-`v1` document always validates against the `v1` schemas.
+published contract still requires an ADR, a migration path and a deprecation period.
+
+> MinVer needs the full git history + tags, so every job that builds/packs checks
+> out with `fetch-depth: 0`.
 
 ## Cutting a release
 
 1. Land the change on `main` (green CI: build, conformance, format, and the npm
    schema-packaging check).
-2. Push a version tag, e.g. `git tag v0.1.0 && git push origin v0.1.0`. This runs
-   `release.yml`: it produces the signed artifacts and the GitHub Release.
+2. Push a version tag, e.g. `git tag v0.2.0 && git push origin v0.2.0`. This runs
+   `release.yml`: it produces the signed artifacts and the GitHub Release, with the
+   version taken from the tag.
 3. When you want the packages on the public registries, run `publish.yml`:
-   **Actions → publish → Run workflow** (you can publish nuget and npm
-   independently via the inputs). This step is manual on purpose.
+   **Actions → publish → Run workflow**, and pass the same **`tag`** (e.g. `v0.2.0`);
+   you can publish nuget and npm independently via the inputs. This step is manual
+   on purpose, and always publishes exactly the tagged commit.
 
 Both SDKs ship the JSON Schemas: the NuGet package bundles `schemas/` directly,
 and the npm package copies them in at pack time (`sdk/typescript/scripts/prepack.mjs`),
@@ -49,5 +65,7 @@ account configuration, not repo configuration). Maintainers: see the internal
 
 ## Current status
 
-Pre-release: the packages are not yet published to nuget.org / npm. The pipeline
-above is in place and gated; the first publish is a deliberate maintainer action.
+Published: `Vev.Atlas.Contracts` is on **nuget.org** and
+`@vev-software/atlas-contracts` is on **npm** (first release `0.1.0`). The pipeline
+above is in place and gated; each subsequent publish is a deliberate maintainer
+action against a released tag.

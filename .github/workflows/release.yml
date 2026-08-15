@@ -25,7 +25,10 @@ jobs:
       attestations: write # record the build-provenance attestation
 
     steps:
+      # fetch-depth: 0 gives MinVer the full history + tags it needs to derive the version.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET (pinned by global.json)
         uses: actions/setup-dotnet@v6
@@ -44,13 +47,16 @@ jobs:
           dotnet build AtlasContracts.slnx -c Release --no-restore
           dotnet test AtlasContracts.slnx -c Release --no-build
 
+      # No --no-build: MinVer stamps the version during this build (the tag is the source of truth).
       - name: Pack .NET SDK
-        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release --no-build -o artifacts
+        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release -o artifacts
 
-      # `npm pack` runs prepack, so the tarball ships the schemas.
+      # `npm pack` runs prepack, so the tarball ships the schemas. The npm version is
+      # stamped from the tag (vX.Y.Z → X.Y.Z) so it always matches the .NET package.
       - name: Pack TypeScript SDK
         working-directory: sdk/typescript
         run: |
+          npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
           npm install
           npm run build
           npm pack --pack-destination ../../artifacts

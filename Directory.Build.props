@@ -15,7 +15,17 @@
     <Authors>VEV Software ApS</Authors>
     <RepositoryUrl>https://github.com/Vev-software/atlas-contracts</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <!-- Contracts are versioned; breaking is expensive (AGENTS.md §4, 03 · E3). -->
-    <VersionPrefix>0.1.0</VersionPrefix>
+
+    <!-- Contracts are versioned; breaking is expensive (AGENTS.md §4, 03 · E3).
+         The version is derived from the git tag by MinVer: tag `vX.Y.Z` produces
+         package version X.Y.Z, and commits after a tag produce a pre-release. The
+         tag is the single source of truth — there is no hand-maintained version
+         number in this repo. See docs/releasing.md. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Build-time only: sets Version/PackageVersion from the git tag. -->
+    <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
 </Project>
