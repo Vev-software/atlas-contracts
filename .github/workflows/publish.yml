@@ -1,31 +1,3 @@
-# Publishes the SDK packages to the public registries. Manual only
-# (workflow_dispatch) and gated behind the `release` environment, so a publish
-# never happens by accident — you press the button, and the environment can add
-# required reviewers on top.
-#
-# Auth uses OIDC "Trusted Publishing" — NO long-lived API keys are stored in the
-# repo (nuget.org now discourages API keys for CI). At run time the workflow gets
-# a short-lived GitHub OIDC token, which the registry trusts because you
-# registered this repo + workflow as a trusted publisher on the registry side.
-#
-# One-time setup before the first publish (all on the REGISTRY, not on GitHub):
-#   nuget.org — Account → Trusted Publishing → Create a policy for:
-#       package owner = your nuget.org account/org
-#       repository owner = Vev-software, repository = atlas-contracts
-#       workflow file = publish.yml   (environment = release, optional)
-#     Docs: https://learn.microsoft.com/nuget/nuget-org/trusted-publishing
-#     Then set the repo variable NUGET_USER to your nuget.org username.
-#   npm — the package page → Settings → Trusted Publisher → GitHub Actions:
-#       org = Vev-software, repo = atlas-contracts, workflow = publish.yml,
-#       environment = release.
-#     NOTE: an npm trusted publisher attaches to an EXISTING package, so the very
-#     first npm publish of a brand-new package needs a one-time manual bootstrap
-#     publish to create it; every publish after that is fully tokenless.
-#
-# You publish a released tag: pass the `tag` you cut with release.yml (e.g. v0.2.0).
-# The job checks out that tag, so the version is derived from it — MinVer for the
-# .NET package, `npm version` for the npm package. There is no version to bump by
-# hand anywhere; the tag is the single source of truth.
 name: publish
 
 on:
@@ -48,87 +20,15 @@ permissions:
   contents: read
 
 jobs:
-  publish-nuget:
-    name: publish · nuget.org
-    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_nuget }}
-    runs-on: ubuntu-latest
-    environment: release
+  publish:
+    uses: Vev-software/.github/.github/workflows/publish-dotnet-npm.yml@main
     permissions:
       contents: read
-      id-token: write # OIDC for NuGet Trusted Publishing — no API key
-    steps:
-      # Check out the released tag with full history so MinVer derives that version.
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.tag }}
-          fetch-depth: 0
-
-      - name: Setup .NET (pinned by global.json)
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      # A release must pass the same public-feed-clean gate as CI before it ships.
-      - name: Build + test (public feeds only)
-        run: |
-          dotnet restore AtlasContracts.slnx
-          dotnet build AtlasContracts.slnx -c Release --no-restore
-          dotnet test AtlasContracts.slnx -c Release --no-build
-
-      # No --no-build: MinVer stamps the version (from the checked-out tag) during pack.
-      - name: Pack
-        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release -o artifacts
-
-      # Exchange the GitHub OIDC token for a short-lived nuget.org API key. Needs a
-      # trusted-publishing policy on nuget.org and the repo variable NUGET_USER.
-      - name: NuGet login (Trusted Publishing)
-        id: nuget-login
-        uses: NuGet/login@v1
-        with:
-          user: ${{ vars.NUGET_USER }}
-
-      - name: Push to nuget.org
-        run: |
-          dotnet nuget push "artifacts/*.nupkg" \
-            --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-  publish-npm:
-    name: publish · npm
-    if: ${{ github.repository == 'Vev-software/atlas-contracts' && inputs.publish_npm }}
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: read
-      id-token: write # OIDC for npm Trusted Publishing + build provenance
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-
-      # Trusted Publishing (tokenless OIDC) needs a recent npm (>= 11.5.1).
-      - name: Update npm
-        run: npm install -g npm@latest
-
-      # Stamp the npm version from the tag (vX.Y.Z → X.Y.Z) — same source as .NET.
-      - name: Build
-        working-directory: sdk/typescript
-        env:
-          TAG: ${{ inputs.tag }}
-        run: |
-          npm version "${TAG#v}" --no-git-tag-version --allow-same-version
-          npm install
-          npm run build
-
-      # No NODE_AUTH_TOKEN: OIDC Trusted Publishing supplies the credential and
-      # npm attaches a signed provenance statement automatically.
-      - name: Publish to npm (Trusted Publishing)
-        working-directory: sdk/typescript
-        run: npm publish --access public
+      id-token: write
+    with:
+      tag: ${{ inputs.tag }}
+      solution: AtlasContracts.slnx
+      dotnet_project: sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj
+      ts_dir: sdk/typescript
+      publish_nuget: ${{ inputs.publish_nuget }}
+      publish_npm: ${{ inputs.publish_npm }}
