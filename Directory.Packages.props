@@ -4,6 +4,8 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Version is derived from the git tag by MinVer (build-time only). -->
+    <PackageVersion Include="MinVer" Version="7.0.0" />
     <!-- Schema validation for the conformance kit. Public dependencies only (AGENTS.md §1.9). -->
     <PackageVersion Include="JsonSchema.Net" Version="9.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
