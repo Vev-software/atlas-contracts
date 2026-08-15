@@ -1,73 +1,20 @@
-# Cuts a signed, immutable release when a version tag is pushed. Builds and tests
-# from public feeds only (the same gate as ci.yml), packs both SDKs, attaches a
-# Sigstore build-provenance attestation to each artifact, and publishes a GitHub
-# Release with the versioned artifacts. It does NOT push to nuget.org / npm — that
-# is a separate, gated publish step (see atlas-contracts#6).
 name: release
 
 on:
   push:
     tags: ["v*.*.*"]
 
-# Read-only by default; the release job elevates only what it needs.
 permissions:
   contents: read
 
 jobs:
   release:
-    name: signed release
-    # Never run from a fork: releases and provenance must come from the canonical repo.
-    if: github.repository == 'Vev-software/atlas-contracts'
-    runs-on: ubuntu-latest
+    uses: Vev-software/.github/.github/workflows/release-dotnet-npm.yml@main
     permissions:
-      contents: write # create the GitHub Release
-      id-token: write # keyless Sigstore signing for the attestation
-      attestations: write # record the build-provenance attestation
-
-    steps:
-      # fetch-depth: 0 gives MinVer the full history + tags it needs to derive the version.
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET (pinned by global.json)
-        uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-
-      # Public feeds only, and the full conformance gate — a release must pass CI.
-      - name: Build + test (public feeds only)
-        run: |
-          dotnet restore AtlasContracts.slnx
-          dotnet build AtlasContracts.slnx -c Release --no-restore
-          dotnet test AtlasContracts.slnx -c Release --no-build
-
-      # No --no-build: MinVer stamps the version during this build (the tag is the source of truth).
-      - name: Pack .NET SDK
-        run: dotnet pack sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj -c Release -o artifacts
-
-      # `npm pack` runs prepack, so the tarball ships the schemas. The npm version is
-      # stamped from the tag (vX.Y.Z → X.Y.Z) so it always matches the .NET package.
-      - name: Pack TypeScript SDK
-        working-directory: sdk/typescript
-        run: |
-          npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version --allow-same-version
-          npm install
-          npm run build
-          npm pack --pack-destination ../../artifacts
-
-      # Sigstore keyless provenance for every release artifact.
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
-        with:
-          subject-path: "artifacts/*"
-
-      - name: Publish GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" artifacts/* --verify-tag --generate-notes
+      contents: write
+      id-token: write
+      attestations: write
+    with:
+      solution: AtlasContracts.slnx
+      dotnet_project: sdk/dotnet/Vev.Atlas.Contracts/Vev.Atlas.Contracts.csproj
+      ts_dir: sdk/typescript
