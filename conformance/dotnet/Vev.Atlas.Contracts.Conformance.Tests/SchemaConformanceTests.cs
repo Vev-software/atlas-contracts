@@ -38,9 +38,11 @@ public sealed class SchemaConformanceTests
             [
                 new Asset("app-1", AssetKind.Application, "Billing", Lifecycle.Active,
                     Tags: [new Tag("tier", "critical")],
-                    Application: new ApplicationDetails(Version: "1.0.0", Vendor: "in-house")),
+                    Application: new ApplicationDetails(Version: "1.0.0", Vendor: "in-house"),
+                    NumericId: 101),
                 new Asset("srv-1", AssetKind.Server, "billing-01", Lifecycle.Active,
-                    Server: new ServerDetails(Hostname: "billing-01", Environment: "production", OperatingSystem: "RHEL 9"))
+                    Server: new ServerDetails(Hostname: "billing-01", Environment: "production", OperatingSystem: "RHEL 9"),
+                    NumericId: 102)
             ],
             Relationships:
             [
@@ -84,6 +86,20 @@ public sealed class SchemaConformanceTests
         var results = Evaluate(instance);
 
         Assert.False(results.IsValid);
+    }
+
+    [Fact]
+    public void Document_with_a_numeric_id_conforms_to_the_published_schema()
+    {
+        var instance = JsonNode.Parse(
+            """
+            { "contractVersion": "1", "assets": [
+              { "id": "x", "numericId": 42, "kind": "application", "name": "X", "lifecycle": "active" } ] }
+            """);
+
+        var results = Evaluate(instance);
+
+        Assert.True(results.IsValid, Describe(results));
     }
 
     private static string Describe(EvaluationResults results) => JsonSchemaTestHelpers.Describe(results);
