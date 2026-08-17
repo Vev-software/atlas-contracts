@@ -73,6 +73,22 @@
           "column": { "$ref": "common.schema.json#/$defs/ColumnDetails" }
         }
       }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "ai-service" } } },
+      "then": {
+        "properties": {
+          "aiService": { "$ref": "common.schema.json#/$defs/AiServiceDetails" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "ai-model" } } },
+      "then": {
+        "properties": {
+          "aiModel": { "$ref": "common.schema.json#/$defs/AiModelDetails" }
+        }
+      }
     }
   ]
 }

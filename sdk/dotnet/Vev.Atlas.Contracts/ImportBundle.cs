@@ -101,6 +101,8 @@ public sealed record ImportBundle(
 /// <param name="DataArea">Held data-area metadata, when <paramref name="Kind"/> is <see cref="AssetKind.DataArea"/>.</param>
 /// <param name="Dataset">Held dataset metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Dataset"/>.</param>
 /// <param name="Column">Held column metadata, when <paramref name="Kind"/> is <see cref="AssetKind.Column"/>.</param>
+/// <param name="AiService">Held AI service metadata, when <paramref name="Kind"/> is <see cref="AssetKind.AiService"/>.</param>
+/// <param name="AiModel">Held AI model metadata, when <paramref name="Kind"/> is <see cref="AssetKind.AiModel"/>.</param>
 public sealed record ImportAsset(
     [property: JsonPropertyName("kind")] AssetKind Kind,
     [property: JsonPropertyName("name")] string Name,
@@ -114,7 +116,9 @@ public sealed record ImportAsset(
     [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
     [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
     [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
-    [property: JsonPropertyName("column")] ColumnDetails? Column = null)
+    [property: JsonPropertyName("column")] ColumnDetails? Column = null,
+    [property: JsonPropertyName("aiService")] AiServiceDetails? AiService = null,
+    [property: JsonPropertyName("aiModel")] AiModelDetails? AiModel = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]

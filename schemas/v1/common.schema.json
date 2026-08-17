@@ -6,8 +6,8 @@
   "$defs": {
     "AssetKind": {
       "type": "string",
-      "description": "The kind of asset held in the catalogue. The data-layer kinds (data-area, dataset, column) model the data architecture beneath a system, down to the column.",
-      "enum": ["system", "application", "server", "infrastructure", "data-area", "dataset", "column"]
+      "description": "The kind of asset held in the catalogue. The data-layer kinds (data-area, dataset, column) model the data architecture beneath a system, down to the column. The AI kinds (ai-service, ai-model) catalogue AI platforms and models as first-class assets.",
+      "enum": ["system", "application", "server", "infrastructure", "data-area", "dataset", "column", "ai-service", "ai-model"]
     },
     "Lifecycle": {
       "type": "string",
@@ -123,6 +123,27 @@
       "properties": {
         "dataType": { "type": ["string", "null"], "maxLength": 128 },
         "nullable": { "type": ["boolean", "null"] }
+      }
+    },
+    "AiServiceDetails": {
+      "type": "object",
+      "description": "Held AI service metadata. Cataloguing only: provider, endpoint and environment are recorded facts, never analysis.",
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": ["string", "null"], "maxLength": 128 },
+        "endpoint": { "type": ["string", "null"], "maxLength": 512 },
+        "environment": { "type": ["string", "null"], "maxLength": 64 }
+      }
+    },
+    "AiModelDetails": {
+      "type": "object",
+      "description": "Held AI model metadata. Cataloguing only: model name, version, provider and embedding dimensions are recorded facts, never analysis.",
+      "additionalProperties": false,
+      "properties": {
+        "modelName": { "type": ["string", "null"], "maxLength": 128 },
+        "version": { "type": ["string", "null"], "maxLength": 64 },
+        "provider": { "type": ["string", "null"], "maxLength": 128 },
+        "embeddingDimensions": { "type": ["integer", "null"] }
       }
     }
   }

@@ -20,6 +20,8 @@ namespace Vev.Atlas.Contracts;
 /// <param name="DataArea">Held data-area metadata, when <see cref="Kind"/> is <see cref="AssetKind.DataArea"/>.</param>
 /// <param name="Dataset">Held dataset metadata, when <see cref="Kind"/> is <see cref="AssetKind.Dataset"/>.</param>
 /// <param name="Column">Held column metadata, when <see cref="Kind"/> is <see cref="AssetKind.Column"/>.</param>
+/// <param name="AiService">Held AI service metadata, when <see cref="Kind"/> is <see cref="AssetKind.AiService"/>.</param>
+/// <param name="AiModel">Held AI model metadata, when <see cref="Kind"/> is <see cref="AssetKind.AiModel"/>.</param>
 public sealed record Asset(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("kind")] AssetKind Kind,
@@ -32,7 +34,9 @@ public sealed record Asset(
     [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
     [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
     [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
-    [property: JsonPropertyName("column")] ColumnDetails? Column = null)
+    [property: JsonPropertyName("column")] ColumnDetails? Column = null,
+    [property: JsonPropertyName("aiService")] AiServiceDetails? AiService = null,
+    [property: JsonPropertyName("aiModel")] AiModelDetails? AiModel = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]
@@ -85,3 +89,23 @@ public sealed record DatasetDetails(
 public sealed record ColumnDetails(
     [property: JsonPropertyName("dataType")] string? DataType = null,
     [property: JsonPropertyName("nullable")] bool? Nullable = null);
+
+/// <summary>Held AI service metadata. Cataloguing only: provider, endpoint and environment are recorded facts, never analysis.</summary>
+/// <param name="Provider">Provider name (e.g. "Azure OpenAI", "Anthropic").</param>
+/// <param name="Endpoint">API endpoint URL.</param>
+/// <param name="Environment">Deployment environment (e.g. "production", "staging").</param>
+public sealed record AiServiceDetails(
+    [property: JsonPropertyName("provider")] string? Provider = null,
+    [property: JsonPropertyName("endpoint")] string? Endpoint = null,
+    [property: JsonPropertyName("environment")] string? Environment = null);
+
+/// <summary>Held AI model metadata. Cataloguing only: model name, version, provider and embedding dimensions are recorded facts, never analysis.</summary>
+/// <param name="ModelName">Model name (e.g. "gpt-4", "claude-3-opus").</param>
+/// <param name="Version">Model version or variant.</param>
+/// <param name="Provider">Provider hosting the model.</param>
+/// <param name="EmbeddingDimensions">Embedding dimensions, for vector/embedding models.</param>
+public sealed record AiModelDetails(
+    [property: JsonPropertyName("modelName")] string? ModelName = null,
+    [property: JsonPropertyName("version")] string? Version = null,
+    [property: JsonPropertyName("provider")] string? Provider = null,
+    [property: JsonPropertyName("embeddingDimensions")] int? EmbeddingDimensions = null);
