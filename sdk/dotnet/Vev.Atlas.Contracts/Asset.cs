@@ -9,6 +9,7 @@ namespace Vev.Atlas.Contracts;
 /// the data and live in the private Atlas core (handbook 11 §1).
 /// </summary>
 /// <param name="Id">Stable, opaque identifier. Never reused or re-meaning'd once published.</param>
+/// <param name="NumericId">Stable numeric identifier assigned when the asset is created.</param>
 /// <param name="Kind">The kind of asset.</param>
 /// <param name="Name">Human-readable name.</param>
 /// <param name="Lifecycle">Catalogue lifecycle state.</param>
@@ -34,9 +35,10 @@ public sealed record Asset(
     [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
     [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
     [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
-    [property: JsonPropertyName("column")] ColumnDetails? Column = null,
+     [property: JsonPropertyName("column")] ColumnDetails? Column = null,
     [property: JsonPropertyName("aiService")] AiServiceDetails? AiService = null,
-    [property: JsonPropertyName("aiModel")] AiModelDetails? AiModel = null)
+    [property: JsonPropertyName("aiModel")] AiModelDetails? AiModel = null,
+    [property: JsonPropertyName("numericId")] long? NumericId = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]

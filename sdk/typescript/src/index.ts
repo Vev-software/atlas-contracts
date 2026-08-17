@@ -81,6 +81,7 @@ export interface ColumnDetails {
 /** A single catalogued asset. */
 export interface Asset {
   id: string;
+  numericId?: number;
   kind: AssetKind;
   name: string;
   lifecycle: Lifecycle;
