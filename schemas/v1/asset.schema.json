@@ -8,6 +8,11 @@
   "required": ["id", "kind", "name", "lifecycle"],
   "properties": {
     "id": { "$ref": "common.schema.json#/$defs/AssetId" },
+    "numericId": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Stable numeric identifier assigned by Atlas when the asset is created. Immutable, and independent of the editable name and human-readable id."
+    },
     "kind": { "$ref": "common.schema.json#/$defs/AssetKind" },
     "name": {
       "type": "string",
