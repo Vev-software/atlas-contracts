@@ -33,5 +33,13 @@ public enum AssetKind
 
     /// <summary>A column (kolonne): a concrete field on a dataset.</summary>
     [JsonStringEnumMemberName("column")]
-    Column
+    Column,
+
+    /// <summary>An AI platform or API endpoint (e.g. Azure OpenAI, Anthropic).</summary>
+    [JsonStringEnumMemberName("ai-service")]
+    AiService,
+
+    /// <summary>A specific AI model deployed or consumed (e.g. gpt-4, claude-3-opus).</summary>
+    [JsonStringEnumMemberName("ai-model")]
+    AiModel
 }
