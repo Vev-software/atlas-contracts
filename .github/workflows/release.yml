@@ -1,4 +1,6 @@
-name: release
+# Auto-fires when the `release` workflow (publish.yml) pushes a vX.Y.Z tag. Creates the signed
+# GitHub Release + Sigstore provenance attestations. Registry publishing lives in publish.yml.
+name: github release
 
 on:
   push:
