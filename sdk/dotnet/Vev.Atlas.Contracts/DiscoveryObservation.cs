@@ -91,6 +91,9 @@ public sealed record ObservationSource(
 /// <param name="Application">Held application facts, when <paramref name="Kind"/> is <see cref="AssetKind.Application"/>.</param>
 /// <param name="Server">Held server facts, when <paramref name="Kind"/> is <see cref="AssetKind.Server"/>.</param>
 /// <param name="Infrastructure">Held infrastructure facts, when <paramref name="Kind"/> is <see cref="AssetKind.Infrastructure"/>.</param>
+/// <param name="DataArea">Held data-area facts, when <paramref name="Kind"/> is <see cref="AssetKind.DataArea"/>. Lets a data-layer scanner (e.g. database schema introspection) carry the data architecture through the same discovery pipeline.</param>
+/// <param name="Dataset">Held dataset facts (physical name, owner), when <paramref name="Kind"/> is <see cref="AssetKind.Dataset"/>.</param>
+/// <param name="Column">Held column facts (declared data type, nullability), when <paramref name="Kind"/> is <see cref="AssetKind.Column"/>. Facts only — never a classification/quality verdict, which is paid Atlas core.</param>
 public sealed record Observation(
     [property: JsonPropertyName("observedId")] string ObservedId,
     [property: JsonPropertyName("kind")] AssetKind Kind,
@@ -104,7 +107,10 @@ public sealed record Observation(
     [property: JsonPropertyName("lastSeen")] DateTimeOffset? LastSeen = null,
     [property: JsonPropertyName("application")] ApplicationDetails? Application = null,
     [property: JsonPropertyName("server")] ServerDetails? Server = null,
-    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null)
+    [property: JsonPropertyName("infrastructure")] InfrastructureDetails? Infrastructure = null,
+    [property: JsonPropertyName("dataArea")] DataAreaDetails? DataArea = null,
+    [property: JsonPropertyName("dataset")] DatasetDetails? Dataset = null,
+    [property: JsonPropertyName("column")] ColumnDetails? Column = null)
 {
     /// <summary>Durable correlation attributes; never null (defaults to empty).</summary>
     [JsonPropertyName("fingerprint")]
