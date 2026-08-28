@@ -240,6 +240,9 @@ export interface Observation {
   application?: ApplicationDetails;
   server?: ServerDetails;
   infrastructure?: InfrastructureDetails;
+  dataArea?: DataAreaDetails;
+  dataset?: DatasetDetails;
+  column?: ColumnDetails;
 }
 
 /**

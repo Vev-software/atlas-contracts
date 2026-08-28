@@ -73,6 +73,43 @@ public sealed class DiscoveryObservationConformanceTests
     }
 
     [Fact]
+    public void Data_layer_observations_carry_dataset_and_column_facts_and_conform()
+    {
+        // Database schema introspection (atlas-enterprise#16) emits the data layer through this same
+        // contract: data-areas, datasets and columns as observations carrying held facts (physical name,
+        // data type, nullability) — never analysis. Proves the schema accepts them and the SDK round-trips.
+        var batch = new DiscoveryObservationBatch(
+            Source: new ObservationSource("db-introspect-01", CollectionMethod.Agentless, Version: "0.1.0"),
+            ObservedAt: DateTimeOffset.Parse("2026-08-10T07:30:00Z"),
+            Observations:
+            [
+                new Observation("db:orders.public", AssetKind.DataArea, "orders",
+                    DataArea: new DataAreaDetails(Realisation: "relational-database")),
+                new Observation("db:orders.public.customers", AssetKind.Dataset, "customers",
+                    Dataset: new DatasetDetails(PhysicalName: "public.customers", Owner: "CRM team")),
+                new Observation("db:orders.public.customers.customer_id", AssetKind.Column, "customer_id",
+                    Column: new ColumnDetails(DataType: "uuid", Nullable: false))
+            ]);
+
+        var json1 = JsonSerializer.Serialize(batch, AtlasContracts.SerializerOptions);
+        var roundTripped = JsonSerializer.Deserialize<DiscoveryObservationBatch>(json1, AtlasContracts.SerializerOptions);
+        var json2 = JsonSerializer.Serialize(roundTripped, AtlasContracts.SerializerOptions);
+
+        Assert.Equal(json1, json2);
+        Assert.True(Evaluate(JsonNode.Parse(json2)).IsValid, Describe(Evaluate(JsonNode.Parse(json2))));
+    }
+
+    [Fact]
+    public void Column_observation_may_not_smuggle_a_classification_verdict()
+    {
+        // The data layer stays facts-only: a sensitivity/classification verdict is paid Atlas core and
+        // must not ride in on a column observation.
+        Assert.False(Evaluate(Observations("""
+            { "observedId": "c1", "kind": "column", "name": "ssn", "column": { "dataType": "char(11)" }, "classification": "pii" }
+            """)).IsValid);
+    }
+
+    [Fact]
     public void Empty_agentless_batch_is_valid()
     {
         // A scan that saw nothing new is still a well-formed batch.

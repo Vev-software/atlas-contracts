@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contracts.vev.software/atlas/v1/discovery-observation.schema.json",
   "title": "Atlas discovery observation batch (v1)",
-  "description": "The public wire format a discovery scanner emits INTO Atlas: a batch of raw observations of an IT landscape (servers, applications, infrastructure) that the private Atlas Enterprise reconciliation engine correlates, deduplicates and turns into catalogue assets. This contract carries facts only — an observation has no Atlas 'id' and no 'lifecycle' (the reconciler assigns those), and never any analysis (no EOL/risk, no criticality, no portfolio scoring). Open so third parties can build scanners; the reconciliation logic that consumes it is the private moat and is NOT part of this repo. See handbook 11 §3, 12 §Phase A, and vev-software/atlas-enterprise#6/#9.",
+  "description": "The public wire format a discovery scanner emits INTO Atlas: a batch of raw observations of an IT landscape (servers, applications, infrastructure, and the data layer down to data-areas, datasets and columns) that the private Atlas Enterprise reconciliation engine correlates, deduplicates and turns into catalogue assets. This contract carries facts only — an observation has no Atlas 'id' and no 'lifecycle' (the reconciler assigns those), and never any analysis (no EOL/risk, no criticality, no portfolio scoring). Open so third parties can build scanners; the reconciliation logic that consumes it is the private moat and is NOT part of this repo. See handbook 11 §3, 12 §Phase A, and vev-software/atlas-enterprise#6/#9.",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "kind", "source", "observedAt", "observations"],
@@ -134,6 +134,18 @@
         {
           "if": { "properties": { "kind": { "const": "infrastructure" } } },
           "then": { "properties": { "infrastructure": { "$ref": "common.schema.json#/$defs/InfrastructureDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "data-area" } } },
+          "then": { "properties": { "dataArea": { "$ref": "common.schema.json#/$defs/DataAreaDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "dataset" } } },
+          "then": { "properties": { "dataset": { "$ref": "common.schema.json#/$defs/DatasetDetails" } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "column" } } },
+          "then": { "properties": { "column": { "$ref": "common.schema.json#/$defs/ColumnDetails" } } }
         }
       ]
     },

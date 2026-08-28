@@ -40,6 +40,24 @@
       ],
       "application": { "version": "4.2.1", "vendor": "in-house" },
       "tags": [{ "key": "discovered-by", "value": "port-scan" }]
+    },
+    {
+      "observedId": "db:orders.public.customers",
+      "kind": "dataset",
+      "name": "customers",
+      "fingerprint": [
+        { "key": "schema-object", "value": "orders-db.public.customers" }
+      ],
+      "dataset": { "physicalName": "public.customers", "owner": "CRM team" }
+    },
+    {
+      "observedId": "db:orders.public.customers.customer_id",
+      "kind": "column",
+      "name": "customer_id",
+      "fingerprint": [
+        { "key": "schema-object", "value": "orders-db.public.customers.customer_id" }
+      ],
+      "column": { "dataType": "uuid", "nullable": false }
     }
   ]
 }
