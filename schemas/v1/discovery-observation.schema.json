@@ -31,9 +31,41 @@
       "description": "The raw observations in this batch. May be empty (a scan that saw nothing new).",
       "items": { "$ref": "#/$defs/Observation" },
       "default": []
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Observed relationships between the things in this batch, referenced by their observedId — e.g. a foreign key (joins-on) or data-layer containment (part-of). Optional and defaults to empty, so a scanner that emits none stays valid. Held facts only; the private reconciler resolves the observedId endpoints to catalogue assets.",
+      "items": { "$ref": "#/$defs/ObservedRelationship" },
+      "default": []
     }
   },
   "$defs": {
+    "ObservedRelationship": {
+      "type": "object",
+      "description": "A relationship between two observed things, by observedId. NOT an Atlas relationship (no asset ids); the reconciler resolves endpoints and re-expresses it in the catalogue.",
+      "additionalProperties": false,
+      "required": ["fromObservedId", "toObservedId", "type"],
+      "properties": {
+        "fromObservedId": {
+          "type": "string",
+          "description": "The referencing observation's observedId.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "toObservedId": {
+          "type": "string",
+          "description": "The referenced observation's observedId.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "type": {
+          "type": "string",
+          "description": "The held relationship vocabulary. Mirrors relationship.schema.json.",
+          "enum": ["runs-on", "hosts", "connects-to", "depends-on", "part-of", "joins-on"]
+        },
+        "description": { "type": ["string", "null"], "maxLength": 1024 }
+      }
+    },
     "ObservationSource": {
       "type": "object",
       "description": "Which scanner produced the batch. The authoritative tenant binding is the authenticated machine-principal at ingestion (a Fabric concern), NOT this payload; 'tenantRef' is an optional, opaque hint only.",
