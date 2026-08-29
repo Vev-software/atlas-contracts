@@ -59,5 +59,13 @@
       ],
       "column": { "dataType": "uuid", "nullable": false }
     }
+  ],
+  "relationships": [
+    {
+      "fromObservedId": "db:orders.public.customers.customer_id",
+      "toObservedId": "db:orders.public.customers",
+      "type": "part-of",
+      "description": "column belongs to dataset"
+    }
   ]
 }

@@ -249,12 +249,23 @@ export interface Observation {
  * The public wire format a discovery scanner emits into Atlas: a batch of raw observations that
  * the private Atlas Enterprise reconciliation engine turns into catalogue assets.
  */
+// An observed relationship between two things in a batch, referenced by their `observedId` (never an
+// Atlas asset id). Reuses the relationship vocabulary: a foreign key is `joins-on`, data-layer
+// containment is `part-of`. A held fact, never derived analysis.
+export interface ObservedRelationship {
+  fromObservedId: string;
+  toObservedId: string;
+  type: RelationshipType;
+  description?: string | null;
+}
+
 export interface DiscoveryObservationBatch {
   contractVersion: typeof CONTRACT_VERSION;
   kind: "discovery-observation";
   source: ObservationSource;
   observedAt: string;
   observations: Observation[];
+  relationships?: ObservedRelationship[];
 }
 
 // --- Portable Atlas bundle (the hosted <-> self-hosted migration package) ---
