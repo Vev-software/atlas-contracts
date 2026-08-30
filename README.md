@@ -26,6 +26,9 @@ published to nuget.org / npm. Follow the epic and the open work in
     the manual relationships and tags that connect and classify them), extended
     **down to the column** with the data layer (data areas, datasets, columns and
     the `joins-on` key),
+  - the **Target Architecture contract** ([`docs/target-architecture.md`](docs/target-architecture.md)) —
+    the public, versioned To-Be surface for Atlas: target scope, ordered versions,
+    status vocabulary, change intents and optional transition/gap shapes,
   - the **import/export document schemas** that carry a whole landscape across a
     boundary (customer-owned data export; community importers/exporters such as
     ArchiMate/BPMN), and the **portable bundle** that layers hosted ↔ self-hosted
@@ -75,7 +78,8 @@ Layout:
   a payload matches the published schemas.
 - `docs/` — contract documentation: the
   [portability surface](docs/portability.md) (import, export & bundle) and how
-  releases are cut and published ([releasing.md](docs/releasing.md)).
+ releases are cut and published ([releasing.md](docs/releasing.md)), plus the
+ [Target Architecture contract](docs/target-architecture.md).
 
 Third parties consume the published packages and run the conformance kit against
 their own import/export payloads; the Atlas runtime pins a released contract version
