@@ -435,3 +435,108 @@ export interface AtlasBundle {
   restore?: RestoreHints | null;
   excluded?: ExcludedCategory[];
 }
+
+// --- Target Architecture (the versioned To-Be contract surface) ---
+//
+// Product-native target modelling only: the named target, its ordered versions, optional
+// transition/gap shapes and the status vocabulary. ArchiMate remains a peripheral mapping.
+
+export type TargetScopeKind = "estate" | "domain" | "capability-area";
+
+export type TargetVersionStatus =
+  | "draft"
+  | "proposed"
+  | "approved"
+  | "active"
+  | "superseded"
+  | "rejected"
+  | "archived";
+
+export type ChangeIntent = "add" | "change" | "retire";
+
+/** What part of the estate a Target Architecture governs. */
+export interface TargetScope {
+  kind: TargetScopeKind;
+  ref?: string | null;
+  name?: string | null;
+}
+
+/** One asset-level intended change in a target version or gap. */
+export interface TargetAssetMember {
+  intent: ChangeIntent;
+  assetRef?: string | null;
+  asset?: Asset | null;
+  rationale?: string | null;
+}
+
+/** One relationship-level intended change in a target version or gap. */
+export interface TargetRelationshipMember {
+  intent: ChangeIntent;
+  relationshipRef?: string | null;
+  relationship?: Relationship | null;
+  rationale?: string | null;
+}
+
+/** One ordered To-Be version (Plateau analogue) in a Target Architecture. */
+export interface TargetVersion {
+  id: string;
+  name: string;
+  sequence: number;
+  status: TargetVersionStatus;
+  rationale?: string | null;
+  intendedHorizon?: string | null;
+  effectiveDate?: string | null;
+  assetChanges?: TargetAssetMember[];
+  relationshipChanges?: TargetRelationshipMember[];
+}
+
+/** One optional intermediate gap slice inside a transition. */
+export interface TargetGap {
+  id: string;
+  name: string;
+  description?: string | null;
+  assetChanges?: TargetAssetMember[];
+  relationshipChanges?: TargetRelationshipMember[];
+}
+
+/** One deliverable within a transition work package. */
+export interface Deliverable {
+  id: string;
+  name: string;
+  description?: string | null;
+}
+
+/** A transition work package grouping one or more deliverables. */
+export interface WorkPackage {
+  id: string;
+  name: string;
+  description?: string | null;
+  deliverables?: Deliverable[];
+}
+
+/** Optional intermediate transition architecture between two target versions. */
+export interface TargetTransition {
+  id: string;
+  name: string;
+  fromVersionId: string;
+  toVersionId: string;
+  description?: string | null;
+  gaps?: TargetGap[];
+  workPackages?: WorkPackage[];
+}
+
+/**
+ * A versioned, landscape-level To-Be target: the named target, its ordered versions, the status
+ * vocabulary and optional transition/gap shapes.
+ */
+export interface TargetArchitectureDocument {
+  contractVersion: typeof CONTRACT_VERSION;
+  kind: "target-architecture";
+  id: string;
+  name: string;
+  description?: string | null;
+  scope: TargetScope;
+  generator?: Generator | null;
+  versions: TargetVersion[];
+  transitions?: TargetTransition[];
+}

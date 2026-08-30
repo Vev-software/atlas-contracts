@@ -21,6 +21,49 @@
       "maxLength": 128,
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
     },
+    "RelationshipId": {
+      "type": "string",
+      "description": "Stable identifier for a relationship. Never reused or re-meaning'd once published.",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "TargetScopeKind": {
+      "type": "string",
+      "description": "The landscape scope a Target Architecture governs.",
+      "enum": ["estate", "domain", "capability-area"]
+    },
+    "TargetVersionStatus": {
+      "type": "string",
+      "description": "Lifecycle status of a TargetVersion. A TargetArchitecture must carry exactly one active version.",
+      "enum": ["draft", "proposed", "approved", "active", "superseded", "rejected", "archived"]
+    },
+    "ChangeIntent": {
+      "type": "string",
+      "description": "How a target member changes the live estate.",
+      "enum": ["add", "change", "retire"]
+    },
+    "TargetScope": {
+      "type": "object",
+      "description": "What part of the estate a Target Architecture governs: the whole estate, one domain, or one capability area.",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/TargetScopeKind" },
+        "ref": {
+          "type": ["string", "null"],
+          "description": "Optional opaque identifier of the scoped thing when the target does not cover the whole estate.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "name": {
+          "type": ["string", "null"],
+          "description": "Optional human-readable scope name.",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
     "Tag": {
       "type": "object",
       "description": "Manual, lightweight classification. A key with an optional value.",
