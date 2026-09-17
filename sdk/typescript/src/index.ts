@@ -14,7 +14,9 @@ export type AssetKind =
   | "infrastructure"
   | "data-area"
   | "dataset"
-  | "column";
+  | "column"
+  | "integration"
+  | "business-process";
 
 export type Lifecycle = "draft" | "active" | "retired";
 

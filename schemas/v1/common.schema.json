@@ -7,7 +7,7 @@
     "AssetKind": {
       "type": "string",
       "description": "The kind of asset held in the catalogue. The data-layer kinds (data-area, dataset, column) model the data architecture beneath a system, down to the column. The AI kinds (ai-service, ai-model) catalogue AI platforms and models as first-class assets.",
-      "enum": ["system", "application", "server", "infrastructure", "data-area", "dataset", "column", "ai-service", "ai-model"]
+      "enum": ["system", "application", "server", "infrastructure", "data-area", "dataset", "column", "ai-service", "ai-model", "integration", "business-process"]
     },
     "Lifecycle": {
       "type": "string",

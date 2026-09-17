@@ -74,6 +74,11 @@ This is the boundary that protects the moat, and the schema enforces it:
 
 ## Validate
 
+For source-declared integrations and business processes, use the canonical
+`integration` and `business-process` kinds; see
+[integration observations](integration-observations.md) for identifiers, observed
+relationships and consumer upgrade requirements.
+
 Run the conformance kit (`dotnet test`) or validate a payload against
 `schemas/v1/discovery-observation.schema.json` with any JSON Schema 2020-12 validator. The
 kit proves the schema accepts a valid batch and the SDK-produced shape, that a batch

@@ -41,5 +41,13 @@ public enum AssetKind
 
     /// <summary>A specific AI model deployed or consumed (e.g. gpt-4, claude-3-opus).</summary>
     [JsonStringEnumMemberName("ai-model")]
-    AiModel
+    AiModel,
+
+    /// <summary>A declared integration between resources, as recorded by its source.</summary>
+    [JsonStringEnumMemberName("integration")]
+    Integration,
+
+    /// <summary>A business process recorded by its source.</summary>
+    [JsonStringEnumMemberName("business-process")]
+    BusinessProcess
 }
