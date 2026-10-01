@@ -39,10 +39,15 @@ public enum PortProtocol
 /// <param name="Source">Provenance: which scanner produced the batch and how.</param>
 /// <param name="ObservedAt">When the scan that produced this batch was taken.</param>
 /// <param name="Observations">The raw observations; may be empty.</param>
+/// <param name="Relationships">
+/// Observed relationships between the things in <paramref name="Observations"/>, referenced by their
+/// <see cref="Observation.ObservedId"/> — e.g. a foreign key or data-layer containment. May be empty.
+/// </param>
 public sealed record DiscoveryObservationBatch(
     [property: JsonPropertyName("source")] ObservationSource Source,
     [property: JsonPropertyName("observedAt")] DateTimeOffset ObservedAt,
-    ImmutableArray<Observation> Observations = default)
+    ImmutableArray<Observation> Observations = default,
+    ImmutableArray<ObservedRelationship> Relationships = default)
 {
     /// <summary>The atlas-contracts schema major version this batch conforms to.</summary>
     [JsonPropertyName("contractVersion")]
@@ -56,7 +61,30 @@ public sealed record DiscoveryObservationBatch(
     [JsonPropertyName("observations")]
     public ImmutableArray<Observation> Observations { get; init; } =
         Observations.IsDefault ? [] : Observations;
+
+    /// <summary>The observed relationships; never null (defaults to empty).</summary>
+    [JsonPropertyName("relationships")]
+    public ImmutableArray<ObservedRelationship> Relationships { get; init; } =
+        Relationships.IsDefault ? [] : Relationships;
 }
+
+/// <summary>
+/// An observed relationship between two things in the landscape, referenced by their scanner-local
+/// <see cref="Observation.ObservedId"/> — never an Atlas asset id (the private reconciler resolves
+/// identity and re-expresses these as catalogue relationships). Reuses the public relationship
+/// vocabulary: a foreign key is a <see cref="RelationshipType.JoinsOn"/> (column → column) and data-layer
+/// containment is a <see cref="RelationshipType.PartOf"/> (column → dataset → data-area). A held fact,
+/// never a measured or derived integration — that analysis is paid Atlas core.
+/// </summary>
+/// <param name="FromObservedId">The referencing observation's <see cref="Observation.ObservedId"/>.</param>
+/// <param name="ToObservedId">The referenced observation's <see cref="Observation.ObservedId"/>.</param>
+/// <param name="Type">The held relationship type.</param>
+/// <param name="Description">Optional free-text note about the relationship.</param>
+public sealed record ObservedRelationship(
+    [property: JsonPropertyName("fromObservedId")] string FromObservedId,
+    [property: JsonPropertyName("toObservedId")] string ToObservedId,
+    [property: JsonPropertyName("type")] RelationshipType Type,
+    [property: JsonPropertyName("description")] string? Description = null);
 
 /// <summary>
 /// Which scanner produced a batch. The authoritative tenant binding is the authenticated

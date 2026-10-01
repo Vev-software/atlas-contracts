@@ -1,0 +1,133 @@
+{
+  "contractVersion": "1",
+  "kind": "target-architecture",
+  "id": "ta-finance-modernisation",
+  "name": "Finance Platform Modernisation",
+  "description": "The estate-level target for retiring the legacy finance stack and moving onto a supported platform.",
+  "scope": {
+    "kind": "domain",
+    "ref": "finance",
+    "name": "Finance"
+  },
+  "generator": {
+    "name": "Atlas Enterprise",
+    "version": "0.1.0"
+  },
+  "versions": [
+    {
+      "id": "tv-2026-active",
+      "name": "Current approved target",
+      "sequence": 1,
+      "status": "superseded",
+      "rationale": "Initial modernisation plateau.",
+      "intendedHorizon": "Q4 2026",
+      "effectiveDate": "2026-10-01",
+      "assetChanges": [
+        {
+          "intent": "change",
+          "assetRef": "app-finance-legacy",
+          "asset": {
+            "id": "app-finance-legacy",
+            "kind": "application",
+            "name": "Finance Core",
+            "lifecycle": "active",
+            "description": "Legacy finance suite during migration.",
+            "application": {
+              "version": "2026.10",
+              "vendor": "VEV"
+            }
+          },
+          "rationale": "Interim upgrade before full replacement."
+        }
+      ]
+    },
+    {
+      "id": "tv-2027-target",
+      "name": "ERP target",
+      "sequence": 2,
+      "status": "active",
+      "rationale": "Move the finance domain onto the supported ERP footprint.",
+      "intendedHorizon": "2027",
+      "effectiveDate": "2027-03-31",
+      "assetChanges": [
+        {
+          "intent": "retire",
+          "assetRef": "app-finance-legacy",
+          "rationale": "Vendor support ends in 2027."
+        },
+        {
+          "intent": "add",
+          "asset": {
+            "id": "app-finance-erp",
+            "kind": "application",
+            "name": "Finance ERP",
+            "lifecycle": "active",
+            "application": {
+              "vendor": "Contoso ERP",
+              "version": "1.0"
+            }
+          },
+          "rationale": "New supported ERP platform."
+        }
+      ],
+      "relationshipChanges": [
+        {
+          "intent": "add",
+          "relationship": {
+            "id": "rel-finance-erp-runs-on",
+            "fromId": "app-finance-erp",
+            "toId": "srv-finance-prod",
+            "type": "runs-on"
+          },
+          "rationale": "Target hosting for the ERP runtime."
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "tr-finance-cutover",
+      "name": "Cutover programme",
+      "description": "The ordered migration steps from the current plateau to the ERP target.",
+      "fromVersionId": "tv-2026-active",
+      "toVersionId": "tv-2027-target",
+      "gaps": [
+        {
+          "id": "gap-ledger",
+          "name": "Ledger migration gap",
+          "description": "Move ledger integrations and data onto the ERP footprint.",
+          "assetChanges": [
+            {
+              "intent": "change",
+              "assetRef": "app-finance-legacy",
+              "asset": {
+                "id": "app-finance-legacy",
+                "kind": "application",
+                "name": "Finance Core",
+                "lifecycle": "active",
+                "application": {
+                  "version": "2027.01",
+                  "vendor": "VEV"
+                }
+              },
+              "rationale": "Stabilise the cutover branch before retirement."
+            }
+          ]
+        }
+      ],
+      "workPackages": [
+        {
+          "id": "wp-erp-rollout",
+          "name": "ERP rollout",
+          "description": "Programme increment for finance cutover.",
+          "deliverables": [
+            {
+              "id": "del-tenant-cutover",
+              "name": "Tenant cutover runbook"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

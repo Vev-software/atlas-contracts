@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/target-architecture.schema.json",
+  "title": "Atlas Target Architecture document (v1)",
+  "description": "A versioned, landscape-level To-Be target: the named target, its ordered versions, the status vocabulary and optional transition/gap shapes. Product-native truth only: ArchiMate remains a peripheral mapping. See atlas-contracts#35.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "kind", "id", "name", "scope", "versions"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this document conforms to.",
+      "const": "1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "target-architecture"
+    },
+    "id": {
+      "type": "string",
+      "description": "Stable identifier for the target architecture.",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the target architecture.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "description": {
+      "type": ["string", "null"],
+      "maxLength": 4096
+    },
+    "scope": {
+      "$ref": "common.schema.json#/$defs/TargetScope"
+    },
+    "generator": {
+      "description": "Optional provenance: what produced this target document.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "common.schema.json#/$defs/Generator" }
+      ]
+    },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/TargetVersion" },
+      "contains": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "const": "active" }
+        }
+      },
+      "minContains": 1,
+      "maxContains": 1
+    },
+    "transitions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/TargetTransition" },
+      "default": []
+    }
+  },
+  "$defs": {
+    "TargetAssetMember": {
+      "type": "object",
+      "description": "One asset-level intended change in a TargetVersion or transition/gap step.",
+      "additionalProperties": false,
+      "required": ["intent"],
+      "properties": {
+        "intent": { "$ref": "common.schema.json#/$defs/ChangeIntent" },
+        "assetRef": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "common.schema.json#/$defs/AssetId" }
+          ]
+        },
+        "asset": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "asset.schema.json" }
+          ]
+        },
+        "rationale": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "intent": { "const": "add" } }, "required": ["intent"] },
+          "then": { "required": ["asset"] }
+        },
+        {
+          "if": { "properties": { "intent": { "const": "change" } }, "required": ["intent"] },
+          "then": { "required": ["assetRef", "asset"] }
+        },
+        {
+          "if": { "properties": { "intent": { "const": "retire" } }, "required": ["intent"] },
+          "then": { "required": ["assetRef"] }
+        }
+      ]
+    },
+    "TargetRelationshipMember": {
+      "type": "object",
+      "description": "One relationship-level intended change in a TargetVersion or transition/gap step.",
+      "additionalProperties": false,
+      "required": ["intent"],
+      "properties": {
+        "intent": { "$ref": "common.schema.json#/$defs/ChangeIntent" },
+        "relationshipRef": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "common.schema.json#/$defs/RelationshipId" }
+          ]
+        },
+        "relationship": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "relationship.schema.json" }
+          ]
+        },
+        "rationale": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "intent": { "const": "add" } }, "required": ["intent"] },
+          "then": { "required": ["relationship"] }
+        },
+        {
+          "if": { "properties": { "intent": { "const": "change" } }, "required": ["intent"] },
+          "then": { "required": ["relationshipRef", "relationship"] }
+        },
+        {
+          "if": { "properties": { "intent": { "const": "retire" } }, "required": ["intent"] },
+          "then": { "required": ["relationshipRef"] }
+        }
+      ]
+    },
+    "TargetVersion": {
+      "type": "object",
+      "description": "One ordered To-Be version (ArchiMate Plateau analogue) within a Target Architecture.",
+      "additionalProperties": false,
+      "required": ["id", "name", "sequence", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": { "$ref": "common.schema.json#/$defs/TargetVersionStatus" },
+        "rationale": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "intendedHorizon": {
+          "type": ["string", "null"],
+          "maxLength": 128
+        },
+        "effectiveDate": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "assetChanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TargetAssetMember" },
+          "default": []
+        },
+        "relationshipChanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TargetRelationshipMember" },
+          "default": []
+        }
+      }
+    },
+    "TargetGap": {
+      "type": "object",
+      "description": "An optional intermediate gap slice between two target versions.",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "assetChanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TargetAssetMember" },
+          "default": []
+        },
+        "relationshipChanges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TargetRelationshipMember" },
+          "default": []
+        }
+      }
+    },
+    "Deliverable": {
+      "type": "object",
+      "description": "One deliverable within a transition work package.",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        }
+      }
+    },
+    "WorkPackage": {
+      "type": "object",
+      "description": "A transition work package grouping one or more deliverables.",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "deliverables": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Deliverable" },
+          "default": []
+        }
+      }
+    },
+    "TargetTransition": {
+      "type": "object",
+      "description": "Optional intermediate transition architecture between two versions.",
+      "additionalProperties": false,
+      "required": ["id", "name", "fromVersionId", "toVersionId"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "description": {
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "fromVersionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "toVersionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+        },
+        "gaps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TargetGap" },
+          "default": []
+        },
+        "workPackages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkPackage" },
+          "default": []
+        }
+      }
+    }
+  }
+}

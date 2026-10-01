@@ -26,18 +26,21 @@ published to nuget.org / npm. Follow the epic and the open work in
     the manual relationships and tags that connect and classify them), extended
     **down to the column** with the data layer (data areas, datasets, columns and
     the `joins-on` key),
+  - the **Target Architecture contract** ([`docs/target-architecture.md`](docs/target-architecture.md)) —
+    the public, versioned To-Be surface for Atlas: target scope, ordered versions,
+    status vocabulary, change intents and optional transition/gap shapes,
   - the **import/export document schemas** that carry a whole landscape across a
     boundary (customer-owned data export; community importers/exporters such as
     ArchiMate/BPMN), and the **portable bundle** that layers hosted ↔ self-hosted
     migration metadata (workspace, diagrams, attachment manifest, module data,
     restore hints) on top of the export,
-   - the **discovery ingestion contract** ([`docs/discovery.md`](docs/discovery.md)) —
-     the wire format a scanner emits into Atlas, so third parties can build scanners while
-     the private reconciliation engine stays out of this repo,
-   - the **landscape share digest** ([`docs/landscape-digest.md`](docs/landscape-digest.md)) —
-     a minimized, versioned landscape summary for consented consumers, with schema-enforced
-     minimization, monotonic sequence replay protection and a detached signature over the
-     RFC 8785 canonicalization,
+  - the **discovery ingestion contract** ([`docs/discovery.md`](docs/discovery.md)) —
+    the wire format a scanner emits into Atlas, so third parties can build scanners while
+    the private reconciliation engine stays out of this repo,
+  - the **landscape share digest** ([`docs/landscape-digest.md`](docs/landscape-digest.md)) —
+    a minimized, versioned landscape summary for consented consumers, with schema-enforced
+    minimization, monotonic sequence replay protection and a detached signature over the
+    RFC 8785 canonicalization,
   - **conformance tests** third parties can run, and
   - the **.NET and TypeScript SDKs** generated from the schemas.
 - **Is not:** the Atlas application. The runtime lives in separate repositories
@@ -79,7 +82,8 @@ Layout:
   a payload matches the published schemas.
 - `docs/` — contract documentation: the
   [portability surface](docs/portability.md) (import, export & bundle), the
-  [landscape share digest](docs/landscape-digest.md) and how
+  [landscape share digest](docs/landscape-digest.md), the
+  [Target Architecture contract](docs/target-architecture.md) and how
   releases are cut and published ([releasing.md](docs/releasing.md)).
 
 Third parties consume the published packages and run the conformance kit against

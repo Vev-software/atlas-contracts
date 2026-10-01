@@ -110,6 +110,51 @@ public sealed class DiscoveryObservationConformanceTests
     }
 
     [Fact]
+    public void Observed_relationships_conform_and_round_trip_through_the_sdk()
+    {
+        // A scanner reports relationships as facts by observedId — a foreign key as joins-on, containment
+        // as part-of. The reconciler (private) resolves the endpoints to catalogue assets; the contract
+        // only carries the observed edges.
+        var batch = new DiscoveryObservationBatch(
+            Source: new ObservationSource("db-introspect-01", CollectionMethod.Agentless),
+            ObservedAt: DateTimeOffset.Parse("2026-08-10T07:30:00Z"),
+            Observations:
+            [
+                new Observation("ds", AssetKind.Dataset, "customers", Dataset: new DatasetDetails(PhysicalName: "public.customers")),
+                new Observation("c1", AssetKind.Column, "customer_id", Column: new ColumnDetails(DataType: "uuid", Nullable: false)),
+                new Observation("c2", AssetKind.Column, "org_id", Column: new ColumnDetails(DataType: "uuid", Nullable: false))
+            ],
+            Relationships:
+            [
+                new ObservedRelationship("c1", "ds", RelationshipType.PartOf),
+                new ObservedRelationship("c2", "c1", RelationshipType.JoinsOn, Description: "org_id references customer_id")
+            ]);
+
+        var json1 = JsonSerializer.Serialize(batch, AtlasContracts.SerializerOptions);
+        var roundTripped = JsonSerializer.Deserialize<DiscoveryObservationBatch>(json1, AtlasContracts.SerializerOptions);
+        var json2 = JsonSerializer.Serialize(roundTripped, AtlasContracts.SerializerOptions);
+
+        Assert.Equal(json1, json2);
+        Assert.True(Evaluate(JsonNode.Parse(json2)).IsValid, Describe(Evaluate(JsonNode.Parse(json2))));
+    }
+
+    [Fact]
+    public void Observed_relationship_with_an_unknown_type_is_rejected()
+    {
+        // Only the held relationship vocabulary is allowed; a measured/derived integration is paid-core
+        // analysis and must not smuggle itself into the public discovery contract.
+        var instance = JsonNode.Parse(
+            """
+            { "contractVersion": "1", "kind": "discovery-observation",
+              "source": { "agentId": "a", "method": "agentless" },
+              "observedAt": "2026-08-10T07:30:00Z", "observations": [],
+              "relationships": [ { "fromObservedId": "a", "toObservedId": "b", "type": "measured-integration" } ] }
+            """);
+
+        Assert.False(Evaluate(instance).IsValid);
+    }
+
+    [Fact]
     public void Empty_agentless_batch_is_valid()
     {
         // A scan that saw nothing new is still a well-formed batch.
