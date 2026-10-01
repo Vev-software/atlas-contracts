@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v1/landscape-digest.schema.json",
+  "title": "Atlas landscape share digest (v1)",
+  "description": "A minimized, versioned summary of an Atlas landscape for consented consumers. Push-only sharing surface: Atlas produces the digest and delivers it as a file or over an outbound HTTPS call; a consumer never pulls from the customer's network. Minimization is enforced by the schema (additionalProperties: false): no hostnames, IP addresses, server or discovery details, descriptions, attachments, people, column-level data or credentials. The digest is a summary for sharing — not the customer-owned portability export (landscape.schema.json) and not an import document. See docs/landscape-digest.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "digestId", "generatedAt", "sourceInstanceId", "sequence", "scope", "items"],
+  "properties": {
+    "contractVersion": {
+      "type": "string",
+      "description": "The atlas-contracts schema major version this digest conforms to.",
+      "const": "1"
+    },
+    "digestId": {
+      "type": "string",
+      "description": "Stable identifier for this digest. Opaque to consumers; unique per produced digest (a UUIDv7 is recommended).",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "generatedAt": {
+      "type": "string",
+      "description": "When the digest was produced (RFC 3339).",
+      "format": "date-time"
+    },
+    "sourceInstanceId": {
+      "type": "string",
+      "description": "Opaque identifier of the producing Atlas instance. Consumers use it to scope sequence/replay state; it carries no tenant or customer semantics. A source that resets its sequence must mint a new sourceInstanceId.",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "sequence": {
+      "type": "integer",
+      "description": "Monotonic per sourceInstanceId: the first digest is sequence 1, each later digest is strictly higher (gaps allowed). Consumers must reject a sequence at or below the last one accepted for the same source (replay protection).",
+      "minimum": 1
+    },
+    "scope": {
+      "$ref": "#/$defs/DigestScope"
+    },
+    "items": {
+      "type": "array",
+      "description": "The minimized landscape items. Every item's kind must be a member of scope.kinds (checked by the conformance kit; JSON Schema cannot express it).",
+      "items": { "$ref": "#/$defs/DigestItem" }
+    }
+  },
+  "$defs": {
+    "DigestKind": {
+      "type": "string",
+      "description": "Digest classification of an item. Deliberately narrower than the catalogue AssetKind: platform folds in server/infrastructure/AI substrate, vendor is a producer-derived summary entry, and data-layer kinds (data-area, dataset, column) are excluded from digests.",
+      "enum": ["system", "application", "platform", "vendor"]
+    },
+    "PlannedChange": {
+      "type": "string",
+      "description": "The intended change for an item, taken from the Target Architecture contract's change intents (add/change/retire) and extended with replace for digest purposes. The shared ChangeIntent vocabulary is not modified.",
+      "enum": ["add", "change", "replace", "retire"]
+    },
+    "DigestScope": {
+      "type": "object",
+      "description": "Which asset kinds and tags were included in this digest. Both arrays are required and may be empty: an empty kinds array means no kinds were included, and an empty tags array means no tag filter was applied (tag matching is OR within the list, AND with the kind filter).",
+      "additionalProperties": false,
+      "required": ["kinds", "tags"],
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "description": "The digest item kinds included.",
+          "items": { "$ref": "#/$defs/DigestKind" },
+          "uniqueItems": true
+        },
+        "tags": {
+          "type": "array",
+          "description": "The tag filters that qualified inclusion (key, and value when present).",
+          "items": { "$ref": "common.schema.json#/$defs/Tag" }
+        }
+      }
+    },
+    "DigestItem": {
+      "type": "object",
+      "description": "One minimized landscape item. Carries only the fields a consented consumer needs: classification, name, lifecycle, and optional vendor / planned change / integration count. Everything else (hostnames, IPs, server and discovery details, descriptions, attachments, people, column-level data, credentials) is forbidden by additionalProperties: false.",
+      "additionalProperties": false,
+      "required": ["kind", "name", "lifecycle"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/DigestKind" },
+        "name": {
+          "type": "string",
+          "description": "The item's catalogue name.",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "lifecycle": { "$ref": "common.schema.json#/$defs/Lifecycle" },
+        "vendor": {
+          "type": ["string", "null"],
+          "description": "Optional vendor of the item, when known.",
+          "maxLength": 128
+        },
+        "plannedChange": { "$ref": "#/$defs/PlannedChange" },
+        "integrationCount": {
+          "type": "integer",
+          "description": "Optional count of integrations the item participates in. A count only — never the identities of the integrated parties.",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "contractVersion": "1",
+  "digestId": "0195f2a4-7c3e-7000-8000-000000000044",
+  "generatedAt": "2026-09-28T12:00:00Z",
+  "sourceInstanceId": "atlas-instance-conformance",
+  "sequence": 1,
+  "scope": {
+    "kinds": ["system", "application", "platform", "vendor"],
+    "tags": [{ "key": "shared", "value": "true" }]
+  },
+  "items": [
+    {
+      "kind": "system",
+      "name": "Payments platform",
+      "lifecycle": "active",
+      "integrationCount": 5
+    },
+    {
+      "kind": "application",
+      "name": "Checkout service",
+      "lifecycle": "active",
+      "vendor": "in-house",
+      "description": "Customer-facing checkout API.",
+      "plannedChange": "replace",
+      "integrationCount": 3
+    },
+    {
+      "kind": "platform",
+      "name": "EU production compute",
+      "lifecycle": "active",
+      "vendor": "Example Cloud",
+      "server": { "hostname": "eu-prod-01.example.internal", "environment": "production" }
+    }
+  ]
+}

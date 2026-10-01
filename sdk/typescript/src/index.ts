@@ -424,3 +424,63 @@ export interface AtlasBundle {
   restore?: RestoreHints | null;
   excluded?: ExcludedCategory[];
 }
+
+// --- Landscape share digest (the minimized, signed sharing surface) ---
+//
+// A minimized summary of an Atlas landscape for consented consumers. Push-only: Atlas produces
+// the digest and delivers it as a file or over an outbound HTTPS call; a consumer never pulls
+// from the customer's network. Minimization is enforced by the schema (additionalProperties:
+// false): no hostnames, IP addresses, server or discovery details, descriptions, attachments,
+// people, column-level data or credentials. This is a summary for sharing — NOT the
+// customer-owned portability export (LandscapeDocument) and not an import document. The digest
+// payload is unsigned on the wire; the detached signature (RSA-SHA-256 PKCS#1 v1.5 over the
+// RFC 8785 canonicalization) travels in a documented wrapper. Mirrors
+// `schemas/v1/landscape-digest.schema.json`.
+
+/** Digest classification of an item. Deliberately narrower than `AssetKind`. */
+export type DigestKind = "system" | "application" | "platform" | "vendor";
+
+/**
+ * The intended change for an item, taken from the Target Architecture contract's change intents
+ * and extended with `replace` for digest purposes.
+ */
+export type PlannedChange = "add" | "change" | "replace" | "retire";
+
+/**
+ * Which asset kinds and tags were included in a digest. Both arrays are required and may be
+ * empty: an empty `kinds` means no kinds were included, and an empty `tags` means no tag filter
+ * was applied (tag matching is OR within the list, AND with the kind filter).
+ */
+export interface LandscapeDigestScope {
+  kinds: DigestKind[];
+  tags: Tag[];
+}
+
+/**
+ * One minimized landscape item. Carries only the fields a consented consumer needs; everything
+ * else is forbidden by the schema.
+ */
+export interface LandscapeDigestItem {
+  kind: DigestKind;
+  name: string;
+  lifecycle: Lifecycle;
+  vendor?: string | null;
+  plannedChange?: PlannedChange | null;
+  /** A count only — never the identities of the integrated parties. */
+  integrationCount?: number | null;
+}
+
+/**
+ * A minimized, versioned summary of an Atlas landscape for consented consumers. `sequence` is
+ * monotonic per `sourceInstanceId` (first is 1, strictly higher after, gaps allowed); consumers
+ * reject a sequence at or below the last accepted for the same source (replay protection).
+ */
+export interface LandscapeDigest {
+  contractVersion: typeof CONTRACT_VERSION;
+  digestId: string;
+  generatedAt: string;
+  sourceInstanceId: string;
+  sequence: number;
+  scope: LandscapeDigestScope;
+  items: LandscapeDigestItem[];
+}
