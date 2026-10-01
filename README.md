@@ -37,6 +37,10 @@ published to nuget.org / npm. Follow the epic and the open work in
   - the **discovery ingestion contract** ([`docs/discovery.md`](docs/discovery.md)) —
     the wire format a scanner emits into Atlas, so third parties can build scanners while
     the private reconciliation engine stays out of this repo,
+  - the **landscape share digest** ([`docs/landscape-digest.md`](docs/landscape-digest.md)) —
+    a minimized, versioned landscape summary for consented consumers, with schema-enforced
+    minimization, monotonic sequence replay protection and a detached signature over the
+    RFC 8785 canonicalization,
   - **conformance tests** third parties can run, and
   - the **.NET and TypeScript SDKs** generated from the schemas.
 - **Is not:** the Atlas application. The runtime lives in separate repositories
@@ -77,9 +81,10 @@ Layout:
 - `conformance/` — a runnable kit a third party or the Atlas runtime uses to prove
   a payload matches the published schemas.
 - `docs/` — contract documentation: the
-  [portability surface](docs/portability.md) (import, export & bundle) and how
- releases are cut and published ([releasing.md](docs/releasing.md)), plus the
- [Target Architecture contract](docs/target-architecture.md).
+  [portability surface](docs/portability.md) (import, export & bundle), the
+  [landscape share digest](docs/landscape-digest.md), the
+  [Target Architecture contract](docs/target-architecture.md) and how
+  releases are cut and published ([releasing.md](docs/releasing.md)).
 
 Third parties consume the published packages and run the conformance kit against
 their own import/export payloads; the Atlas runtime pins a released contract version
@@ -96,6 +101,17 @@ hints — as one self-contained, versioned document. All carry Atlas domain data
 no paid-core analysis, no secrets, no entitlement/billing state. See
 [`docs/portability.md`](docs/portability.md) for the document shapes, reference
 resolution, and the versioning/compatibility policy.
+
+## Landscape share digest
+
+The **landscape share digest** is the minimized sharing surface: a versioned summary of
+an Atlas landscape for consented consumers (partners, integrators, auditors), delivered
+push-only. Minimization is enforced by the schema — no hostnames, IPs, server or
+discovery details, descriptions, attachments, people, column-level data or credentials.
+It adds monotonic per-source sequence replay protection and an optional detached
+signature over the RFC 8785 canonicalization. See
+[`docs/landscape-digest.md`](docs/landscape-digest.md) for the document shape, the
+digest kind mapping, scope semantics, replay rules and the signature format.
 
 ## Contributing
 
