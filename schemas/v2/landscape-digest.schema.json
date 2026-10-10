@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.vev.software/atlas/v2/landscape-digest.schema.json",
+  "title": "Atlas landscape share digest (v2)",
+  "description": "Minimized push-only digest with per-digest refs, optional layer and opt-in relations. Payload scope records sender intent, never authorization. Cross-item invariants require semantic validation; see docs/landscape-digest.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "digestId", "generatedAt", "sourceInstanceId", "sequence", "scope", "items"],
+  "properties": {
+    "contractVersion": { "const": "2" },
+    "digestId": { "$ref": "../v1/landscape-digest.schema.json#/properties/digestId" },
+    "generatedAt": { "$ref": "../v1/landscape-digest.schema.json#/properties/generatedAt" },
+    "sourceInstanceId": { "$ref": "../v1/landscape-digest.schema.json#/properties/sourceInstanceId" },
+    "sequence": { "$ref": "../v1/landscape-digest.schema.json#/properties/sequence" },
+    "scope": { "$ref": "#/$defs/Scope" },
+    "items": { "type": "array", "items": { "$ref": "#/$defs/Item" } },
+    "relations": {
+      "type": "array",
+      "maxItems": 20000,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/Relation" }
+    }
+  },
+  "if": { "required": ["relations"] },
+  "then": {
+    "properties": {
+      "scope": { "required": ["relations"], "properties": { "relations": { "const": true } } }
+    }
+  },
+  "$defs": {
+    "Ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Opaque, unique within this digest and meaningless outside it. Mint anew per digest; never an asset id or stable identifier."
+    },
+    "Scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kinds", "tags"],
+      "properties": {
+        "kinds": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestScope/properties/kinds" },
+        "tags": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestScope/properties/tags" },
+        "relations": { "type": "boolean", "default": false }
+      }
+    },
+    "Item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "kind", "name", "lifecycle"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/Ref" },
+        "kind": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestKind" },
+        "name": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestItem/properties/name" },
+        "lifecycle": { "$ref": "../v1/common.schema.json#/$defs/Lifecycle" },
+        "vendor": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestItem/properties/vendor" },
+        "plannedChange": { "$ref": "../v1/landscape-digest.schema.json#/$defs/PlannedChange" },
+        "integrationCount": { "$ref": "../v1/landscape-digest.schema.json#/$defs/DigestItem/properties/integrationCount" },
+        "layer": { "enum": ["business", "application", "data", "infrastructure"] }
+      }
+    },
+    "Relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "kind"],
+      "properties": {
+        "from": { "$ref": "#/$defs/Ref" },
+        "to": { "$ref": "#/$defs/Ref" },
+        "kind": { "enum": ["runsOn", "suppliedBy", "integrates"] }
+      }
+    }
+  }
+}

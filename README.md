@@ -76,6 +76,7 @@ cd sdk/typescript && npm install && npm run build
 Layout:
 
 - `schemas/v1/` — the authoritative JSON Schemas (the source of truth).
+- `schemas/v2/` — the separate landscape digest v2 schema; digest v1 is frozen.
 - `sdk/dotnet/` — the `Vev.Atlas.Contracts` NuGet package (ships the schemas).
 - `sdk/typescript/` — the `@vev-software/atlas-contracts` npm package.
 - `conformance/` — a runnable kit a third party or the Atlas runtime uses to prove
@@ -109,7 +110,9 @@ an Atlas landscape for consented consumers (partners, integrators, auditors), de
 push-only. Minimization is enforced by the schema — no hostnames, IPs, server or
 discovery details, descriptions, attachments, people, column-level data or credentials.
 It adds monotonic per-source sequence replay protection and an optional detached
-signature over the RFC 8785 canonicalization. See
+signature over the RFC 8785 canonicalization. Digest v2 adds per-digest refs,
+optional layer and default-off minimized relations alongside unchanged v1.
+Both SDKs include semantic validation after JSON Schema validation. See
 [`docs/landscape-digest.md`](docs/landscape-digest.md) for the document shape, the
 digest kind mapping, scope semantics, replay rules and the signature format.
 

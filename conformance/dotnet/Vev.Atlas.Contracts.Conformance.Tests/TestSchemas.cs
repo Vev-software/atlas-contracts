@@ -17,7 +17,7 @@ internal static class TestSchemas
     private static readonly Dictionary<string, Uri> SchemaIds = new(StringComparer.OrdinalIgnoreCase);
     private static bool _registered;
 
-    private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas", "v1");
+    private static readonly string SchemaDir = Path.Combine(AppContext.BaseDirectory, "schemas");
 
     /// <summary>The samples directory copied next to the schemas at build time.</summary>
     public static string SampleDir { get; } = Path.Combine(AppContext.BaseDirectory, "samples");
@@ -43,13 +43,15 @@ internal static class TestSchemas
                 return;
             }
 
-            foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json"))
+            foreach (var file in Directory.EnumerateFiles(SchemaDir, "*.json", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
             {
                 var content = File.ReadAllText(file);
                 using var document = JsonDocument.Parse(content);
                 var id = new Uri(document.RootElement.GetProperty("$id").GetString()!, UriKind.Absolute);
 
-                SchemaIds[Path.GetFileName(file)] = id;
+                var relative = Path.GetRelativePath(SchemaDir, file).Replace('\\', '/');
+                SchemaIds[relative] = id;
+                if (relative.StartsWith("v1/", StringComparison.Ordinal)) SchemaIds[Path.GetFileName(file)] = id;
                 JsonSchema.FromText(content, BuildOptions);
             }
 

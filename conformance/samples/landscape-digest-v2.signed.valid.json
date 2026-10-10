@@ -1,0 +1,66 @@
+{
+  "digest": {
+    "contractVersion": "2",
+    "digestId": "digest-v2-conformance",
+    "generatedAt": "2026-10-09T12:00:00Z",
+    "sourceInstanceId": "atlas-conformance",
+    "sequence": 1,
+    "scope": {
+      "kinds": [
+        "system",
+        "application",
+        "platform",
+        "vendor"
+      ],
+      "tags": [],
+      "relations": true
+    },
+    "items": [
+      {
+        "ref": "c1",
+        "kind": "system",
+        "name": "Example ERP",
+        "lifecycle": "active",
+        "layer": "application"
+      },
+      {
+        "ref": "c2",
+        "kind": "platform",
+        "name": "Example compute",
+        "lifecycle": "active",
+        "layer": "infrastructure"
+      },
+      {
+        "ref": "c3",
+        "kind": "vendor",
+        "name": "Example vendor",
+        "lifecycle": "active"
+      },
+      {
+        "ref": "c4",
+        "kind": "application",
+        "name": "Example checkout",
+        "lifecycle": "active",
+        "layer": "application"
+      }
+    ],
+    "relations": [
+      {
+        "from": "c1",
+        "to": "c2",
+        "kind": "runsOn"
+      },
+      {
+        "from": "c1",
+        "to": "c3",
+        "kind": "suppliedBy"
+      }
+    ]
+  },
+  "signature": {
+    "algorithm": "rsa-pkcs1-v1_5-sha256",
+    "keyId": "atlas-conformance-test-key",
+    "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyEK_l3nAXi2hnjZpC_czznEOJnrpulBNxGP-KHnVh_5scaNOoMfqroAfSMYzV7gskKMX8qDHi9RAIudqnkBKFKYUtg5GZ4VhmiytqQNEt1RxcT4uHAjpH8ywxBf4Nhg2UKlleE9JqHV3PvbfAxrXKRx9OEyfu-VDOf8mVcw4j1WwfRGN6fy18lC4R7mkPrvMVl_Cg_r8jeyXnyQkE3GJmmVx7ncfnjbV6mbg59QHd0hpw2hBZBjfPa1cjwflzhChxd91eNZ_OFBET7gDUFHLGWR2uNmUzlQEKgqGeeol49EPQj0pt0qxVOv8K7mJH0LK_BAItzKFo8hxjKU2rbRc6QIDAQAB",
+    "value": "K6phVGWmFhp9Yoa_mTysRE4nTeyOM0ZRWv7GjY1C6ohSwBY9y9guRVzq2Z21wPuQQXn3iQmar_7CnRiQWBetSbKfqxYKe7aqt5eLQQgQa2YwW1j4bWWOOLr_f0SBEbzIpfnyJxRjUxvoS5KnN5IpplU4WsZ-vwG6gPh0kqy4OAWDXB2nJ9Q6PV8lCNyHVBHO-L2-IfHoDKq-_F4ZLrE-sNwk5acwfLJ3ScqXeLLxO4rePxWuxvONwDXJOME1PU7E1blDBiccvKhw6PfEQ8HOKgaeRei3GZq2sDlLOkhHkR1AlaWX-EAchR7KVfKUKJm0327Jrk8jPXeWJY3C2p0h-w"
+  }
+}

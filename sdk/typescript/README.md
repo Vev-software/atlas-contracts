@@ -23,6 +23,12 @@ import type { LandscapeDocument, Asset } from "@vev-software/atlas-contracts";
 
 Ships type declarations (`dist/index.d.ts`) and ESM; no runtime dependencies.
 
+Digest v1 remains unchanged. `LandscapeDigestV2` adds required per-digest refs,
+optional layer and default-off closed relations. After validating raw JSON against
+`schemas/v2/landscape-digest.schema.json`, call `validateLandscapeDigestV2` for
+cross-item rules. Scope never authorizes sharing; `integrates` requires separate
+stage 2 consent. Both schema versions and their relative dependencies are shipped.
+
 ## Versioning
 
 [SemVer](https://semver.org), derived from the git tag (`vX.Y.Z`) at release. Pre-1.0, the v1

@@ -53,6 +53,7 @@ jobs:
         run: |
           npm install
           npm run build
+          npm test
 
       # The npm package must ship the schemas (like the NuGet package does). The
       # prepack step copies schemas/v1 in; prove the tarball actually carries them.
@@ -66,6 +67,10 @@ jobs:
               const schemas = files.filter((p) => p.startsWith('schemas/v1/'));
               if (schemas.length === 0) {
                 console.error('npm package is missing schemas/ — check scripts/prepack.mjs');
+                process.exit(1);
+              }
+              if (!files.includes('schemas/v2/landscape-digest.schema.json')) {
+                console.error('npm package is missing the v2 digest schema');
                 process.exit(1);
               }
               console.log('npm package ships ' + schemas.length + ' schema files.');

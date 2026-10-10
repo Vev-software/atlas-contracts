@@ -1,13 +1,13 @@
 # Releasing & publishing
 
-How a version of the Atlas contracts is cut and published. Two workflows do the
-work, and both are deliberately separate so building a release and pushing it to
-the public registries are distinct, gated steps.
+How a version of the Atlas contracts is cut and published. The manual release
+workflow verifies main, computes a tag-derived version and requires the release
+environment's approval before tagging and publishing.
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| [`release.yml`](../.github/workflows/release.yml) | push a `v*.*.*` tag | Builds + tests from public feeds, packs both SDKs, attaches a **Sigstore build-provenance** attestation, and creates a **GitHub Release** with the versioned artifacts. Does not touch the registries. |
-| [`publish.yml`](../.github/workflows/publish.yml) | manual (`workflow_dispatch`) for a given `tag`, gated by the `release` environment | Publishes `Vev.Atlas.Contracts` to **nuget.org** and `@vev-software/atlas-contracts` to **npm**. |
+| [`publish.yml`](../.github/workflows/publish.yml), displayed as `release` | manual (`workflow_dispatch`) on main with `bump` and `dry_run` | Requires green CI for main's exact commit, computes the next version, then after the `release` environment approval builds, tests, tags and publishes both SDKs to **nuget.org** and **npm**. `dry_run` skips tagging and publication. |
+| [`release.yml`](../.github/workflows/release.yml), displayed as `github release` | push a `v*.*.*` tag | Builds + tests from public feeds, packs both SDKs, attaches a **Sigstore build-provenance** attestation and creates a **GitHub Release**. Does not touch the registries. |
 
 ## Versioning — the tag is the single source of truth
 
@@ -24,7 +24,7 @@ everything:
 
 So bumping a release is a **single action: create the tag**. Nothing else to edit,
 so the .NET and npm packages can never drift out of sync. Version follows SemVer and
-is independent of the schema `contractVersion` (the `v1` contract major — see
+is independent of the schema `contractVersion` (including digest v1/v2 — see
 [portability.md](portability.md) for the additive-vs-breaking policy). Breaking a
 published contract still requires an ADR, a migration path and a deprecation period.
 
@@ -35,13 +35,16 @@ published contract still requires an ADR, a migration path and a deprecation per
 
 1. Land the change on `main` (green CI: build, conformance, format, and the npm
    schema-packaging check).
-2. Push a version tag, e.g. `git tag v0.2.0 && git push origin v0.2.0`. This runs
-   `release.yml`: it produces the signed artifacts and the GitHub Release, with the
-   version taken from the tag.
-3. When you want the packages on the public registries, run `publish.yml`:
-   **Actions → publish → Run workflow**, and pass the same **`tag`** (e.g. `v0.2.0`);
-   you can publish nuget and npm independently via the inputs. This step is manual
-   on purpose, and always publishes exactly the tagged commit.
+2. After explicit maintainer authorization, open **Actions → release → Run
+   workflow** on main, choose `bump` (patch/minor/major), and leave `dry_run` false
+   for publication. The workflow computes the next tag; no package version is edited.
+3. Approve the `release` environment gate. The workflow tests the verified commit,
+   creates/pushes the tag and publishes both public packages; the tag also triggers
+   `github release` for release artifacts and provenance.
+4. Verify that the same version is available from both public feeds and that its
+   schemas and SDK surfaces are present. Exporters must pin this published version
+   before depending on new contract fields. Digest v2 publication remains outstanding
+   until these checks pass; implementation and local packing do not satisfy it.
 
 Both SDKs ship the JSON Schemas: the NuGet package bundles `schemas/` directly,
 and the npm package copies them in at pack time (`sdk/typescript/scripts/prepack.mjs`),
