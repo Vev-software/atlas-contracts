@@ -11,7 +11,7 @@ It is held catalogue metadata, not vendor product EOL, analysis or an event log.
 }
 ```
 
-The four optional fields are calendar dates (`YYYY-MM-DD`, years 0001–9999),
+The four optional fields are calendar dates (`YYYY-MM-DD`, years 0001 through 9999),
 without a time or timezone. A start is the first day in use (inclusive); an end
 is the first day out of use (exclusive). Equal boundaries are permitted and
 represent an empty interval. Missing or null dates mean unknown, not proof of
@@ -33,7 +33,8 @@ also validates calendar dates; .NET `DateOnly` rejects invalid calendar dates wh
 parsing. An empty error list means the period's semantic rules passed, not that
 the whole document or an import operation was accepted.
 
-Importers/exporters must preserve all four dates independently. The landscape and
+Importers/exporters must preserve all four dates independently. Keep planned dates
+when actual dates become known; actual outcomes do not overwrite the plan. The landscape and
 portable bundle reuse `Asset`; Target Architecture embedded assets do too. The
 contract does not implement runtime storage, merge policies, UI or time filtering.
 

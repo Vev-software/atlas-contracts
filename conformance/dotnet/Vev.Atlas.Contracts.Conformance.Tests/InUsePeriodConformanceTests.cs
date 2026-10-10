@@ -9,7 +9,7 @@ namespace Vev.Atlas.Contracts.Conformance.Tests;
 public sealed class InUsePeriodConformanceTests
 {
     private static readonly InUsePeriod Period = new(
-        new DateOnly(2027, 1, 1), new DateOnly(2029, 1, 1), new DateOnly(2027, 2, 15));
+        new DateOnly(2027, 1, 1), new DateOnly(2029, 1, 1), new DateOnly(2027, 2, 15), new DateOnly(2029, 3, 1));
 
     private static bool SchemaValid(string schema, JsonNode node) =>
         TestSchemas.Load(schema).Evaluate(JsonSerializer.SerializeToElement(node),
@@ -58,6 +58,9 @@ public sealed class InUsePeriodConformanceTests
     [InlineData("2027-01-01T00:00:00Z")]
     [InlineData("2027-1-1")]
     [InlineData("0000-01-01")]
+    [InlineData("1900-02-29")]
+    [InlineData("2027-04-31")]
+    [InlineData("10000-01-01")]
     public void Invalid_dates_are_rejected_by_DateOnly(string date)
     {
         var asset = JsonSerializer.SerializeToNode(new Asset("a", AssetKind.System, "A", Lifecycle.Active), AtlasContracts.SerializerOptions)!;
@@ -73,6 +76,34 @@ public sealed class InUsePeriodConformanceTests
         var asset = JsonSerializer.SerializeToNode(new Asset("a", AssetKind.System, "A", Lifecycle.Active, InUsePeriod: Period), AtlasContracts.SerializerOptions)!;
         asset["inUsePeriod"]!["snapshot"] = "hidden";
         Assert.False(SchemaValid("asset.schema.json", asset));
+    }
+
+    [Fact]
+    public void Embedded_target_assets_preserve_all_dates_and_reject_unknown_period_fields()
+    {
+        var target = JsonNode.Parse(File.ReadAllText(Path.Combine(TestSchemas.SampleDir, "target-architecture.sample.json")))!;
+        var asset = target["versions"]![0]!["assetChanges"]![0]!["asset"]!;
+        asset["inUsePeriod"] = JsonSerializer.SerializeToNode(Period, AtlasContracts.SerializerOptions);
+        var restored = target.Deserialize<TargetArchitectureDocument>(AtlasContracts.SerializerOptions)!;
+        RoundTrip(restored, "target-architecture.schema.json");
+        Assert.Equal(Period, restored.Versions[0].AssetChanges[0].Asset!.InUsePeriod);
+        asset["inUsePeriod"]!["unknown"] = true;
+        Assert.False(SchemaValid("target-architecture.schema.json", target));
+    }
+
+    [Theory]
+    [InlineData("0001-01-01")]
+    [InlineData("2000-02-29")]
+    [InlineData("9999-12-31")]
+    public void Calendar_extremes_and_leap_dates_are_valid_on_every_boundary(string date)
+    {
+        foreach (var field in new[] { "plannedStart", "plannedEnd", "actualStart", "actualEnd" })
+        {
+            var asset = JsonSerializer.SerializeToNode(new Asset("a", AssetKind.System, "A", Lifecycle.Active), AtlasContracts.SerializerOptions)!;
+            asset["inUsePeriod"] = new JsonObject { [field] = date };
+            Assert.True(SchemaValid("asset.schema.json", asset));
+            RoundTrip(asset.Deserialize<Asset>(AtlasContracts.SerializerOptions)!, "asset.schema.json");
+        }
     }
 
     [Fact]
