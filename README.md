@@ -125,3 +125,5 @@ guidelines; a DCO/CLA applies per this repo's Apache-2.0 licence.
 
 Please report vulnerabilities **privately**, not through public issues — see the
 Vev-software security policy.
+
+Asset planned/actual in-use dates: see [`docs/in-use-period.md`](docs/in-use-period.md).

@@ -23,6 +23,7 @@ namespace Vev.Atlas.Contracts;
 /// <param name="Column">Held column metadata, when <see cref="Kind"/> is <see cref="AssetKind.Column"/>.</param>
 /// <param name="AiService">Held AI service metadata, when <see cref="Kind"/> is <see cref="AssetKind.AiService"/>.</param>
 /// <param name="AiModel">Held AI model metadata, when <see cref="Kind"/> is <see cref="AssetKind.AiModel"/>.</param>
+/// <param name="InUsePeriod">Optional planned and actual in-use dates; independent of lifecycle.</param>
 public sealed record Asset(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("kind")] AssetKind Kind,
@@ -38,7 +39,8 @@ public sealed record Asset(
      [property: JsonPropertyName("column")] ColumnDetails? Column = null,
     [property: JsonPropertyName("aiService")] AiServiceDetails? AiService = null,
     [property: JsonPropertyName("aiModel")] AiModelDetails? AiModel = null,
-    [property: JsonPropertyName("numericId")] long? NumericId = null)
+    [property: JsonPropertyName("numericId")] long? NumericId = null,
+    [property: JsonPropertyName("inUsePeriod")] InUsePeriod? InUsePeriod = null)
 {
     /// <summary>Manual classification tags; never null (defaults to empty).</summary>
     [JsonPropertyName("tags")]

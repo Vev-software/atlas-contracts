@@ -87,6 +87,7 @@ export interface Asset {
   kind: AssetKind;
   name: string;
   lifecycle: Lifecycle;
+  inUsePeriod?: InUsePeriod | null;
   description?: string | null;
   tags?: Tag[];
   application?: ApplicationDetails;
@@ -137,6 +138,7 @@ export interface ImportAsset {
   kind: AssetKind;
   name: string;
   lifecycle: Lifecycle;
+  inUsePeriod?: InUsePeriod | null;
   description?: string | null;
   tags?: Tag[];
   application?: ApplicationDetails;
@@ -670,4 +672,38 @@ export interface TargetArchitectureDocument {
   generator?: Generator | null;
   versions: TargetVersion[];
   transitions?: TargetTransition[];
+}
+
+/** Calendar dates (YYYY-MM-DD), start inclusive/end exclusive; omitted/null means unknown. */
+export interface InUsePeriod {
+  plannedStart?: string | null;
+  plannedEnd?: string | null;
+  actualStart?: string | null;
+  actualEnd?: string | null;
+}
+
+/** Validate dates and pair ordering. Does not infer lifecycle or replace raw JSON Schema validation. */
+export function validateInUsePeriod(period?: InUsePeriod | null): string[] {
+  if (period == null) return [];
+  const errors: string[] = [];
+  const valid = (value: string): boolean => {
+    if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value)) return false;
+    const year = Number(value.slice(0, 4));
+    const month = Number(value.slice(5, 7));
+    const day = Number(value.slice(8, 10));
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1]!;
+  };
+  for (const key of ["plannedStart", "plannedEnd", "actualStart", "actualEnd"] as const) {
+    const value = period[key];
+    if (value != null && (typeof value !== "string" || !valid(value))) errors.push(`${key} must be a valid YYYY-MM-DD date.`);
+  }
+  for (const prefix of ["planned", "actual"] as const) {
+    const start = period[`${prefix}Start`];
+    const end = period[`${prefix}End`];
+    if (typeof start === "string" && typeof end === "string" && valid(start) && valid(end) && start > end)
+      errors.push(`${prefix}Start must be on or before ${prefix}End.`);
+  }
+  return errors;
 }

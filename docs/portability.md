@@ -244,3 +244,6 @@ exports (see `conformance/`).
   older-but-same-major reader, which imports the landscape core and skips what it does not
   know — the module compatibility hints (`compatibility.requiredModules`) tell it what it is
   missing.
+
+Optional asset in-use dates are preserved by import/export and the bundle landscape.
+See [in-use period](in-use-period.md) for date semantics and required semantic validation.

@@ -24,6 +24,7 @@
       "maxLength": 4096
     },
     "lifecycle": { "$ref": "common.schema.json#/$defs/Lifecycle" },
+    "inUsePeriod": { "oneOf": [{ "type": "null" }, { "$ref": "common.schema.json#/$defs/InUsePeriod" }] },
     "tags": {
       "type": "array",
       "items": { "$ref": "common.schema.json#/$defs/Tag" },
