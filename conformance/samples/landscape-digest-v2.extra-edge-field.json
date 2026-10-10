@@ -1,0 +1,59 @@
+{
+  "contractVersion": "2",
+  "digestId": "digest-v2-conformance",
+  "generatedAt": "2026-10-09T12:00:00Z",
+  "sourceInstanceId": "atlas-conformance",
+  "sequence": 1,
+  "scope": {
+    "kinds": [
+      "system",
+      "application",
+      "platform",
+      "vendor"
+    ],
+    "tags": [],
+    "relations": true
+  },
+  "items": [
+    {
+      "ref": "c1",
+      "kind": "system",
+      "name": "Example ERP",
+      "lifecycle": "active",
+      "layer": "application"
+    },
+    {
+      "ref": "c2",
+      "kind": "platform",
+      "name": "Example compute",
+      "lifecycle": "active",
+      "layer": "infrastructure"
+    },
+    {
+      "ref": "c3",
+      "kind": "vendor",
+      "name": "Example vendor",
+      "lifecycle": "active"
+    },
+    {
+      "ref": "c4",
+      "kind": "application",
+      "name": "Example checkout",
+      "lifecycle": "active",
+      "layer": "application"
+    }
+  ],
+  "relations": [
+    {
+      "from": "c1",
+      "to": "c2",
+      "kind": "runsOn",
+      "label": "forbidden"
+    },
+    {
+      "from": "c1",
+      "to": "c3",
+      "kind": "suppliedBy"
+    }
+  ]
+}

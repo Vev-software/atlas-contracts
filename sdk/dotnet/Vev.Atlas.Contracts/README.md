@@ -16,6 +16,10 @@ dotnet add package Vev.Atlas.Contracts
   boundary (customer-owned export; community importers/exporters).
 - **Authoritative JSON Schemas** — bundled under `schemas/` in the package, so any language can
   validate against the exact same contracts the SDK exposes.
+- **Landscape share digest v1 and v2** — separate types; v2 adds per-digest refs,
+  layer and opt-in closed relations. Run `LandscapeDigestV2Validation.Validate`
+  after raw JSON Schema validation. Scope never authorizes sharing; `integrates`
+  requires separate stage 2 consent. Both schema versions are bundled.
 
 The types are plain records/enums with `System.Text.Json` attributes and no runtime dependencies
 beyond the base class library.

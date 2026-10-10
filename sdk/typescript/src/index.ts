@@ -498,6 +498,75 @@ export interface LandscapeDigest {
   items: LandscapeDigestItem[];
 }
 
+// --- Landscape share digest v2 (v1 remains unchanged) ---
+
+export const LANDSCAPE_DIGEST_V2_VERSION = "2" as const;
+export type DigestLayer = "business" | "application" | "data" | "infrastructure";
+/** integrates is contract-only stage 2, requiring separate explicit consent. */
+export type DigestRelationKind = "runsOn" | "suppliedBy" | "integrates";
+
+/** Signed inclusion scope; omitted relations means false. Never authorization. */
+export interface LandscapeDigestScopeV2 extends LandscapeDigestScope {
+  relations?: boolean;
+}
+
+export interface LandscapeDigestItemV2 extends Omit<LandscapeDigestItem, "plannedChange" | "integrationCount"> {
+  /** Required, opaque, 1–64 characters; minted per digest, never a stable asset id. */
+  ref: string;
+  layer?: DigestLayer;
+  plannedChange?: PlannedChange;
+  integrationCount?: number;
+}
+
+/** Closed edge shape: JSON Schema rejects every additional property. */
+export interface LandscapeDigestRelation {
+  from: string;
+  to: string;
+  kind: DigestRelationKind;
+}
+
+export interface LandscapeDigestV2 extends Omit<LandscapeDigest, "contractVersion" | "scope" | "items"> {
+  contractVersion: typeof LANDSCAPE_DIGEST_V2_VERSION;
+  scope: LandscapeDigestScopeV2;
+  items: LandscapeDigestItemV2[];
+  /** Omit entirely unless scope.relations is true, including when empty. */
+  relations?: LandscapeDigestRelation[];
+}
+
+/** Run after JSON Schema validation. Does not grant sharing or consumption permission. */
+export function validateLandscapeDigestV2(digest: LandscapeDigestV2): string[] {
+  const errors: string[] = [];
+  const items = new Map<string, LandscapeDigestItemV2>();
+  for (const item of digest.items) {
+    if (items.has(item.ref)) errors.push("duplicate-ref");
+    items.set(item.ref, item);
+    if (!digest.scope.kinds.includes(item.kind)) errors.push("item-outside-scope");
+  }
+  if (digest.relations === undefined) return errors;
+  if (digest.scope.relations !== true) errors.push("relations-not-enabled");
+  if (digest.relations.length > 20000) errors.push("too-many-relations");
+  const edges = new Set<string>();
+  const isSystem = (kind: DigestKind) => kind === "system" || kind === "application";
+  for (const edge of digest.relations) {
+    if (edge.from === edge.to) errors.push("self-edge");
+    const endpoints = edge.kind === "integrates" ? [edge.from, edge.to].sort() : [edge.from, edge.to];
+    const key = JSON.stringify([edge.kind, ...endpoints]);
+    if (edges.has(key)) errors.push("duplicate-edge");
+    edges.add(key);
+    const source = items.get(edge.from);
+    const target = items.get(edge.to);
+    if (!source || !target) {
+      errors.push("dangling-ref");
+      continue;
+    }
+    const valid = edge.kind === "runsOn" ? isSystem(source.kind) && target.kind === "platform"
+      : edge.kind === "suppliedBy" ? source.kind !== "vendor" && target.kind === "vendor"
+      : edge.kind === "integrates" && isSystem(source.kind) && isSystem(target.kind);
+    if (!valid) errors.push("invalid-relation-endpoints");
+  }
+  return errors;
+}
+
 // --- Target Architecture (the versioned To-Be contract surface) ---
 //
 // Product-native target modelling only: the named target, its ordered versions, optional
