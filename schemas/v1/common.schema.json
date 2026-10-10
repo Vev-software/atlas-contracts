@@ -4,6 +4,17 @@
   "title": "Atlas contracts — common types (v1)",
   "description": "Shared catalogue vocabulary for the Atlas asset model. Catalogue concepts only: no integration-criticality, EOL risk, portfolio scoring or AI review (those work with the data and live in the private Atlas core). See handbook 11 §1.",
   "$defs": {
+    "InUsePeriod": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Planned and actual calendar-date periods, start inclusive and end exclusive. Missing/null dates are unknown. Same-day boundaries are allowed. Validate start <= end separately for each pair; no cross-pair or lifecycle constraint.",
+      "properties": {
+        "plannedStart": { "type": ["string", "null"], "format": "date", "pattern": "^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "plannedEnd": { "type": ["string", "null"], "format": "date", "pattern": "^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "actualStart": { "type": ["string", "null"], "format": "date", "pattern": "^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "actualEnd": { "type": ["string", "null"], "format": "date", "pattern": "^(?!0000)[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+      }
+    },
     "AssetKind": {
       "type": "string",
       "description": "The kind of asset held in the catalogue. The data-layer kinds (data-area, dataset, column) model the data architecture beneath a system, down to the column. The AI kinds (ai-service, ai-model) catalogue AI platforms and models as first-class assets.",
